@@ -1,6 +1,9 @@
 /* This file is part of MCF Gthread.
- * See LICENSE.TXT for licensing information.
- * Copyleft 2022, LH_Mouse. All wrongs reserved.  */
+ * Copyright (C) 2022-2025 LH_Mouse. All wrongs reserved.
+ *
+ * MCF Gthread is free software. Licensing information is included in
+ * LICENSE.TXT as a whole. The GCC Runtime Library Exception applies
+ * to this file.  */
 
 #include "../mcfgthread/thread.h"
 #include <assert.h>
@@ -11,8 +14,9 @@ static _MCF_tls_key* key;
 static HANDLE thrd;
 static int dso_1, dso_2;
 
-static __attribute__((__stdcall__))
+static
 DWORD
+__stdcall
 thread_proc(LPVOID param)
   {
     void* p;
@@ -34,8 +38,8 @@ thread_proc(LPVOID param)
     assert(r == 0);
     assert(p == &dso_2);
 
-    _MCF_sleep((const int64_t[]) { -1000 });
-    printf("thread %d quitting\n", (int) GetCurrentThreadId());
+    _MCF_sleep((const int64_t[]) { -1001 });
+    fprintf(stderr, "thread %d quitting\n", (int) GetCurrentThreadId());
     (void) param;
     return 0;
   }
@@ -74,9 +78,9 @@ main(void)
     thrd = CreateThread(__MCF_nullptr, 0, thread_proc, __MCF_nullptr, 0, __MCF_nullptr);
     assert(thrd);
 
-    printf("main waiting\n");
+    fprintf(stderr, "main waiting\n");
     WaitForSingleObject(thrd, INFINITE);
-    printf("main wait finished\n");
+    fprintf(stderr, "main wait finished\n");
 
     p = _MCF_tls_get(key);
     assert(p == &dso_2);

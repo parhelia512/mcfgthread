@@ -1,17 +1,20 @@
 /* This file is part of MCF Gthread.
- * See LICENSE.TXT for licensing information.
- * Copyleft 2022 - 2024, LH_Mouse. All wrongs reserved.  */
+ * Copyright (C) 2022-2025 LH_Mouse. All wrongs reserved.
+ *
+ * MCF Gthread is free software. Licensing information is included in
+ * LICENSE.TXT as a whole. The GCC Runtime Library Exception applies
+ * to this file.  */
 
-#include "precompiled.h"
+#include "xprecompiled.h"
 #define __MCF_TLS_IMPORT  __MCF_DLLEXPORT
 #define __MCF_TLS_INLINE  __MCF_DLLEXPORT
 #include "tls.h"
 #include "atomic.h"
-#include "xglobals.i"
+#include "xglobals.h"
 
 __MCF_DLLEXPORT
 _MCF_tls_key*
-_MCF_tls_key_new(_MCF_tls_dtor* dtor_opt)
+_MCF_tls_key_new(__MCF_cxa_dtor_any_ dtor_opt)
   {
     _MCF_tls_key* key = __MCF_malloc_0(sizeof(_MCF_tls_key));
     if(!key)
@@ -20,7 +23,7 @@ _MCF_tls_key_new(_MCF_tls_dtor* dtor_opt)
     /* Initialize the key structure. The returned pointer is assumed to be
      * unique, so its reference count should be initialized to one.  */
     _MCF_atomic_store_32_rlx(key->__nref, 1);
-    key->__dtor_opt = dtor_opt;
+    key->__dtor_opt = dtor_opt.__cdecl_ptr;
     return key;
   }
 
@@ -34,7 +37,7 @@ _MCF_tls_key_drop_ref_nonnull(_MCF_tls_key* key)
       return;
 
     /* Deallocate all associated resources.  */
-    __MCF_mfree(key);
+    __MCF_mfree_nonnull(key);
   }
 
 static inline
@@ -65,7 +68,7 @@ do_linear_probe_nonempty(const __MCF_tls_table* table, const _MCF_tls_key* key)
       if(!elem->__key_opt || (elem->__key_opt == key))
         return elem;
 
-    __MCF_UNREACHABLE;
+    __MCF_ASSERT(false);
   }
 
 __MCF_DLLEXPORT
@@ -75,7 +78,7 @@ __MCF_tls_table_get(const __MCF_tls_table* table, const _MCF_tls_key* key)
     if(_MCF_atomic_load_8_rlx(key->__deleted))
       return __MCF_nullptr;
 
-    if(!table->__begin)
+    if(table->__begin == table->__end)
       return __MCF_nullptr;
 
     /* Search for the given key.  */
@@ -94,9 +97,9 @@ __MCF_tls_table_xset(__MCF_tls_table* table, _MCF_tls_key* key, void** old_value
     __MCF_SET_IF(old_value_opt, __MCF_nullptr);
 
     if(_MCF_atomic_load_8_rlx(key->__deleted))
-      return -1;
+      return __MCF_win32_error_i(ERROR_INVALID_PARAMETER, -1);
 
-    if(!value_opt && !table->__begin) {
+    if(!value_opt && (table->__begin == table->__end)) {
       /* The new value will be effectively unset. If the table is empty, there
        * can't be a value to unset, so report success anyway.  */
       return 0;
@@ -114,7 +117,7 @@ __MCF_tls_table_xset(__MCF_tls_table* table, _MCF_tls_key* key, void** old_value
 
       elem = __MCF_malloc_0(capacity * sizeof(__MCF_tls_element));
       if(!elem)
-        return -1;
+        return __MCF_win32_error_i(ERROR_NOT_ENOUGH_MEMORY, -1);
 
       __MCF_tls_table temp = *table;
       table->__begin = elem;
@@ -144,7 +147,8 @@ __MCF_tls_table_xset(__MCF_tls_table* table, _MCF_tls_key* key, void** old_value
       }
 
       /* Deallocate the old table which should be empty now.  */
-      __MCF_mfree(temp.__begin);
+      if(temp.__begin)
+        __MCF_mfree_nonnull(temp.__begin);
     }
 
     /* Search for the given key.  */

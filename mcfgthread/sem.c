@@ -1,24 +1,25 @@
 /* This file is part of MCF Gthread.
- * See LICENSE.TXT for licensing information.
- * Copyleft 2022 - 2024, LH_Mouse. All wrongs reserved.  */
+ * Copyright (C) 2022-2025 LH_Mouse. All wrongs reserved.
+ *
+ * MCF Gthread is free software. Licensing information is included in
+ * LICENSE.TXT as a whole. The GCC Runtime Library Exception applies
+ * to this file.  */
 
-#include "precompiled.h"
+#include "xprecompiled.h"
 #define __MCF_SEM_IMPORT  __MCF_DLLEXPORT
 #define __MCF_SEM_INLINE  __MCF_DLLEXPORT
 #include "sem.h"
-#include "xglobals.i"
+#include "xglobals.h"
 
 __MCF_DLLEXPORT
 int
 _MCF_sem_wait(_MCF_sem* sem, const int64_t* timeout_opt)
   {
-    _MCF_sem old, new;
-    NTSTATUS status;
-
     __MCF_winnt_timeout nt_timeout;
     __MCF_initialize_winnt_timeout_v3(&nt_timeout, timeout_opt);
 
     /* Decrement the counter.  */
+    _MCF_sem old, new;
     old.__value = _MCF_atomic_xsub_ptr_rlx(&(sem->__value), 1);
     new.__value = old.__value - 1;
 
@@ -27,21 +28,16 @@ _MCF_sem_wait(_MCF_sem* sem, const int64_t* timeout_opt)
       return 0;
 
     /* Try waiting.  */
-    status = __MCF_keyed_event_wait(sem, nt_timeout.__li);
-    while(status != STATUS_WAIT_0) {
+    int err = __MCF_keyed_event_wait(sem, &nt_timeout);
+    while(err != 0) {
       /* Remove myself from the wait queue. But see below...  */
       _MCF_atomic_load_pptr_rlx(&old, sem);
-      do {
-        if(old.__value >= 0)
-          break;
-
-        new = old;
+      while(old.__value < 0) {
         new.__value = old.__value + 1;
-      }
-      while(!_MCF_atomic_cmpxchg_weak_pptr_rlx(sem, &old, &new));
 
-      if(old.__value < 0)
-        return -1;
+        if(_MCF_atomic_cmpxchg_weak_pptr_rlx(sem, &old, &new))
+          return -1;
+      }
 
       /* ... It is possible that a second thread has already incremented the
        * counter. If this does take place, it is going to release the keyed
@@ -50,7 +46,7 @@ _MCF_sem_wait(_MCF_sem* sem, const int64_t* timeout_opt)
        * keyed event before us, so we set the timeout to zero. If we time out
        * once more, the third thread will have decremented the number of
        * sleeping threads and we can try incrementing it again.  */
-      status = __MCF_keyed_event_wait(sem, (LARGE_INTEGER[]) { 0 });
+      err = __MCF_keyed_event_wait(sem, &(__MCF_winnt_timeout) { 0 });
     }
 
     /* We have got notified.  */
@@ -61,20 +57,17 @@ __MCF_DLLEXPORT __MCF_NEVER_INLINE
 int
 _MCF_sem_signal_some(_MCF_sem* sem, intptr_t value_add)
   {
-    /* Validate arguments.  */
     if(value_add <= 0)
       return (int) (value_add >> (__MCF_PTR_BITS - 1));  /* value_add ? -1 : 0  */
 
     /* Get the number of threads to wake up.  */
     size_t wake_num;
     _MCF_sem old, new;
-
     _MCF_atomic_load_pptr_rlx(&old, sem);
     do {
       if(old.__value > __MCF_SEM_VALUE_MAX - value_add)
         return -2;  /* would overflow  */
 
-      new = old;
       wake_num = _MCF_minz(-(size_t) (old.__value & (old.__value >> (__MCF_PTR_BITS - 1))), (size_t) value_add);
       new.__value = old.__value + value_add;
     }

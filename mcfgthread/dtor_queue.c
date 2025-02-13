@@ -1,25 +1,28 @@
 /* This file is part of MCF Gthread.
- * See LICENSE.TXT for licensing information.
- * Copyleft 2022 - 2024, LH_Mouse. All wrongs reserved.  */
+ * Copyright (C) 2022-2025 LH_Mouse. All wrongs reserved.
+ *
+ * MCF Gthread is free software. Licensing information is included in
+ * LICENSE.TXT as a whole. The GCC Runtime Library Exception applies
+ * to this file.  */
 
-#include "precompiled.h"
+#include "xprecompiled.h"
 #define __MCF_DTOR_QUEUE_IMPORT  __MCF_DLLEXPORT
 #define __MCF_DTOR_QUEUE_INLINE  __MCF_DLLEXPORT
 #include "dtor_queue.h"
 #include "mutex.h"
-#include "xglobals.i"
+#include "xglobals.h"
 
 __MCF_DLLEXPORT
 int
 __MCF_dtor_queue_push(__MCF_dtor_queue* queue, const __MCF_dtor_element* elem)
   {
     if(queue->__size == __MCF_DTOR_QUEUE_BLOCK_SIZE) {
-      /* If the current block is full, allocate a new one and create a singly
-       * linked list.  */
       __MCF_dtor_queue* prev = __MCF_malloc_copy(queue, sizeof(__MCF_dtor_queue));
       if(!prev)
-        return -1;
+        return __MCF_win32_error_i(ERROR_NOT_ENOUGH_MEMORY, -1);
 
+      /* Create a singly-linked list by moving elements to `*prev`. The
+       * current block is empty now.  */
       queue->__prev = prev;
       queue->__size = 0;
     }
@@ -65,7 +68,7 @@ __MCF_dtor_queue_pop(__MCF_dtor_element* elem, __MCF_dtor_queue* queue, void* ds
       __MCF_dtor_queue* prev = cur_q->__prev;
       if((cur_q->__size == 0) && prev) {
         __MCF_mcopy(cur_q, prev, sizeof(__MCF_dtor_queue));
-        __MCF_mfree(prev);
+        __MCF_mfree_nonnull(prev);
       }
       else
         cur_q = prev;
@@ -89,9 +92,9 @@ __MCF_dtor_queue_remove(__MCF_dtor_queue* queue, void* dso)
 
       /* Search forwards and copy all elements not matching `dso`.  */
       if(dso)
-        while(++index != cur_q->__size)
+        while(++ index != cur_q->__size)
           if(dso != cur_q->__data[index].__dso)
-            cur_q->__data[new_size++] = cur_q->__data[index];
+            cur_q->__data[new_size ++] = cur_q->__data[index];
 
       /* Truncate the current block.  */
       count += cur_q->__size - new_size;
@@ -102,7 +105,7 @@ __MCF_dtor_queue_remove(__MCF_dtor_queue* queue, void* dso)
       __MCF_dtor_queue* prev = cur_q->__prev;
       if((cur_q->__size == 0) && prev) {
         __MCF_mcopy(cur_q, prev, sizeof(__MCF_dtor_queue));
-        __MCF_mfree(prev);
+        __MCF_mfree_nonnull(prev);
       }
       else
         cur_q = prev;

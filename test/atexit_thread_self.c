@@ -1,9 +1,13 @@
 /* This file is part of MCF Gthread.
- * See LICENSE.TXT for licensing information.
- * Copyleft 2022, LH_Mouse. All wrongs reserved.  */
+ * Copyright (C) 2022-2025 LH_Mouse. All wrongs reserved.
+ *
+ * MCF Gthread is free software. Licensing information is included in
+ * LICENSE.TXT as a whole. The GCC Runtime Library Exception applies
+ * to this file.  */
 
 #include "../mcfgthread/cxa.h"
 #include "../mcfgthread/thread.h"
+#include "../mcfgthread/exit.h"
 #include <assert.h>
 #include <stdio.h>
 
@@ -15,7 +19,7 @@ atexit_function(void)
   {
     _MCF_thread* cmp = _MCF_thread_self();
     assert(cmp);
-    printf("atexit thread = %p, tid = %d\n", (void*) cmp, (int) cmp->__tid);
+    fprintf(stderr, "atexit thread = %p, tid = %d\n", (void*) cmp, (int) cmp->__tid);
 
     assert(cmp == thr);
     assert(cmp->__tid == thr->__tid);
@@ -26,8 +30,9 @@ main(void)
   {
     thr = _MCF_thread_self();
     assert(thr);
-    printf("main thread = %p, tid = %d\n", (void*) thr, (int) thr->__tid);
+    fprintf(stderr, "main thread = %p, tid = %d\n", (void*) thr, (int) thr->__tid);
 
     __MCF_atexit(atexit_function);
-    printf("main exiting\n");
+    fprintf(stderr, "main exiting\n");
+    __MCF_exit(0);
   }

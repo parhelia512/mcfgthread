@@ -1,6 +1,9 @@
 /* This file is part of MCF Gthread.
- * See LICENSE.TXT for licensing information.
- * Copyleft 2022, LH_Mouse. All wrongs reserved.  */
+ * Copyright (C) 2022-2025 LH_Mouse. All wrongs reserved.
+ *
+ * MCF Gthread is free software. Licensing information is included in
+ * LICENSE.TXT as a whole. The GCC Runtime Library Exception applies
+ * to this file.  */
 
 #include "../mcfgthread/thread.h"
 #include "../mcfgthread/sem.h"
@@ -18,12 +21,13 @@ static
 void
 tls_destructor(void* ptr)
   {
-    printf("thread %d tls_destructor\n", (int) _MCF_thread_self_tid());
-    __atomic_fetch_add((int*) ptr, 1, __ATOMIC_RELAXED);
+    fprintf(stderr, "thread %d tls_destructor\n", (int) _MCF_thread_self_tid());
+    _MCF_atomic_xadd_32_rlx(ptr, 1);
   }
 
-static __attribute__((__stdcall__))
+static
 DWORD
+__stdcall
 thread_proc(LPVOID param)
   {
     _MCF_sem_wait(&start, __MCF_nullptr);
@@ -31,7 +35,7 @@ thread_proc(LPVOID param)
     int r = _MCF_tls_set(key, &count);
     assert(r == 0);
 
-    printf("thread %d quitting\n", (int) GetCurrentThreadId());
+    fprintf(stderr, "thread %d quitting\n", (int) GetCurrentThreadId());
     (void) param;
     return 0;
   }
@@ -48,11 +52,11 @@ main(void)
       assert(threads[k]);
     }
 
-    printf("main waiting\n");
+    fprintf(stderr, "main waiting\n");
     _MCF_sem_signal_some(&start, NTHREADS);
     for(size_t k = 0;  k < NTHREADS;  ++k) {
       WaitForSingleObject(threads[k], INFINITE);
-      printf("main wait finished: %d\n", (int)k);
+      fprintf(stderr, "main wait finished: %d\n", (int)k);
     }
 
     assert(count == NTHREADS);

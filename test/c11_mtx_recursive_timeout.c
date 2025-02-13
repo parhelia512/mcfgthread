@@ -1,6 +1,9 @@
 /* This file is part of MCF Gthread.
- * See LICENSE.TXT for licensing information.
- * Copyleft 2022, LH_Mouse. All wrongs reserved.  */
+ * Copyright (C) 2022-2025 LH_Mouse. All wrongs reserved.
+ *
+ * MCF Gthread is free software. Licensing information is included in
+ * LICENSE.TXT as a whole. The GCC Runtime Library Exception applies
+ * to this file.  */
 
 #include "../mcfgthread/c11.h"
 #include "../mcfgthread/clock.h"
@@ -14,6 +17,7 @@ int
 main(void)
   {
     double now, delta;
+    time_t sleep_until;
     struct timespec timeout;
     int r;
 
@@ -22,27 +26,31 @@ main(void)
     r = mtx_init(&mutex, mtx_recursive | mtx_timed);
     assert(r == thrd_success);
 
-    /* Round the time up.  */
-    int64_t sleep_until = (int64_t) time(__MCF_nullptr) * 1000 + 2000;
-    _MCF_sleep(&sleep_until);
-
-    now = _MCF_perf_counter();
-    timeout.tv_sec = time(__MCF_nullptr) + 1;
-    timeout.tv_nsec = 100000000;
+    sleep_until = time(__MCF_nullptr) + 2;
+    _MCF_sleep(&(int64_t) { sleep_until * 1000LL - 20 });
+    do { now = _MCF_perf_counter();
+         timeout.tv_sec = time(__MCF_nullptr);
+    } while(timeout.tv_sec < sleep_until);
+    timeout.tv_sec += 1;
+    timeout.tv_nsec = 115999999;  // relaxed
     r = mtx_timedlock(&mutex, &timeout);  /* lock it  */
     assert(r == thrd_success);
     delta = _MCF_perf_counter() - now;
-    printf("delta = %.6f\n", delta);
+    fprintf(stderr, "delta = %.6f\n", delta);
     assert(delta >= 0);
     assert(delta <= 100);
 
-    now = _MCF_perf_counter();
-    timeout.tv_sec = time(__MCF_nullptr) + 1;
-    timeout.tv_nsec = 100000000;
+    sleep_until = time(__MCF_nullptr) + 2;
+    _MCF_sleep(&(int64_t) { sleep_until * 1000LL - 20 });
+    do { now = _MCF_perf_counter();
+         timeout.tv_sec = time(__MCF_nullptr);
+    } while(timeout.tv_sec < sleep_until);
+    timeout.tv_sec += 1;
+    timeout.tv_nsec = 115999999;  // relaxed
     r = mtx_timedlock(&mutex, &timeout);
     assert(r == thrd_success);
     delta = _MCF_perf_counter() - now;
-    printf("delta = %.6f\n", delta);
+    fprintf(stderr, "delta = %.6f\n", delta);
     assert(delta >= 0);
     assert(delta <= 100);
   }

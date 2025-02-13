@@ -1,6 +1,9 @@
 /* This file is part of MCF Gthread.
- * See LICENSE.TXT for licensing information.
- * Copyleft 2022, LH_Mouse. All wrongs reserved.  */
+ * Copyright (C) 2022-2025 LH_Mouse. All wrongs reserved.
+ *
+ * MCF Gthread is free software. Licensing information is included in
+ * LICENSE.TXT as a whole. The GCC Runtime Library Exception applies
+ * to this file.  */
 
 #include "../mcfgthread/thread.h"
 #include "../mcfgthread/exit.h"
@@ -17,8 +20,9 @@ tls_dtor(void* ptr)
     __MCF__Exit(*(int*) ptr);
   }
 
-static __attribute__((__stdcall__))
+static
 DWORD
+__stdcall
 thread_proc(LPVOID param)
   {
     _MCF_tls_key* key = _MCF_tls_key_new(tls_dtor);
@@ -39,9 +43,9 @@ main(void)
     thrd = CreateThread(__MCF_nullptr, 0, thread_proc, __MCF_nullptr, 0, __MCF_nullptr);
     assert(thrd);
 
-    printf("main waiting\n");
+    fprintf(stderr, "main waiting\n");
     WaitForSingleObject(thrd, INFINITE);
-    printf("main wait finished\n");
+    fprintf(stderr, "main wait finished\n");
 
     __MCF__Exit(43);
   }

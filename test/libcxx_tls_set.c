@@ -1,6 +1,9 @@
 /* This file is part of MCF Gthread.
- * See LICENSE.TXT for licensing information.
- * Copyleft 2022, LH_Mouse. All wrongs reserved.  */
+ * Copyright (C) 2022-2025 LH_Mouse. All wrongs reserved.
+ *
+ * MCF Gthread is free software. Licensing information is included in
+ * LICENSE.TXT as a whole. The GCC Runtime Library Exception applies
+ * to this file.  */
 
 #include "../mcfgthread/libcxx.h"
 #include <assert.h>
@@ -27,8 +30,8 @@ thread_proc(void* param)
     p = __libcpp_tls_get(key);
     assert(p == &dso_2);
 
-    _MCF_sleep((const int64_t[]) { -1000 });
-    printf("thread %d quitting\n", (int) _MCF_thread_self_tid());
+    _MCF_sleep((const int64_t[]) { -1001 });
+    fprintf(stderr, "thread %d quitting\n", (int) _MCF_thread_self_tid());
     return __MCF_nullptr;
   }
 
@@ -55,9 +58,9 @@ main(void)
     assert(r == 0);
     assert(thrd);
 
-    printf("main waiting\n");
+    fprintf(stderr, "main waiting\n");
     __libcpp_thread_join(&thrd);
-    printf("main wait finished\n");
+    fprintf(stderr, "main wait finished\n");
 
     p = __libcpp_tls_get(key);
     assert(p == &dso_1);

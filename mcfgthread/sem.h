@@ -1,6 +1,9 @@
 /* This file is part of MCF Gthread.
- * See LICENSE.TXT for licensing information.
- * Copyleft 2022 - 2024, LH_Mouse. All wrongs reserved.  */
+ * Copyright (C) 2022-2025 LH_Mouse. All wrongs reserved.
+ *
+ * MCF Gthread is free software. Licensing information is included in
+ * LICENSE.TXT as a whole. The GCC Runtime Library Exception applies
+ * to this file.  */
 
 #ifndef __MCFGTHREAD_SEM_
 #define __MCFGTHREAD_SEM_
@@ -8,7 +11,7 @@
 #include "fwd.h"
 #include "atomic.h"
 
-__MCF_C_DECLARATIONS_BEGIN
+__MCF_CXX(extern "C" {)
 #ifndef __MCF_SEM_IMPORT
 #  define __MCF_SEM_IMPORT
 #  define __MCF_SEM_INLINE  __MCF_GNU_INLINE
@@ -32,14 +35,14 @@ struct __MCF_sem
       (__value_init)  }
 
 /* Initializes a semaphore dynamically. The argument is the initial value of
- * the semaphore, which shall not be negative.
- * Static ones should be initialized with `__MCF_SEM_INIT(__value_init)`.
+ * the semaphore, which shall not be negative. Static ones should be initialized
+ * with `__MCF_SEM_INIT(__value_init)`.
  *
  * Returns 0 if the initialization is successful, or -1 in case of invalid
  * arguments.  */
 __MCF_SEM_INLINE
 int
-_MCF_sem_init(_MCF_sem* __sem, intptr_t __value_init) __MCF_NOEXCEPT;
+_MCF_sem_init(_MCF_sem* __sem, intptr_t __value_init) __MCF_noexcept;
 
 /* Gets the current value of a semaphore.
  *
@@ -48,7 +51,7 @@ _MCF_sem_init(_MCF_sem* __sem, intptr_t __value_init) __MCF_NOEXCEPT;
  * this semaphore.  */
 __MCF_SEM_INLINE
 intptr_t
-_MCF_sem_get(const _MCF_sem* __sem) __MCF_NOEXCEPT;
+_MCF_sem_get(const _MCF_sem* __sem) __MCF_noexcept;
 
 /* Decrements the value of a semaphore. If the result is negative, the calling
  * thread will be suspended.
@@ -63,7 +66,7 @@ _MCF_sem_get(const _MCF_sem* __sem) __MCF_NOEXCEPT;
  * woken up by another thread, or -1 if the operation has timed out.  */
 __MCF_SEM_IMPORT
 int
-_MCF_sem_wait(_MCF_sem* __sem, const int64_t* __timeout_opt) __MCF_NOEXCEPT;
+_MCF_sem_wait(_MCF_sem* __sem, const int64_t* __timeout_opt) __MCF_noexcept;
 
 /* Increases the value of a semaphore by the specified value. If the value was
  * negative before the call, a waiting thread is woken up. The argument shall
@@ -73,11 +76,11 @@ _MCF_sem_wait(_MCF_sem* __sem, const int64_t* __timeout_opt) __MCF_NOEXCEPT;
  * invalid arguments, or -2 if the result would overflow.  */
 __MCF_SEM_IMPORT
 int
-_MCF_sem_signal_some(_MCF_sem* __sem, intptr_t __value_add) __MCF_NOEXCEPT;
+_MCF_sem_signal_some(_MCF_sem* __sem, intptr_t __value_add) __MCF_noexcept;
 
 __MCF_SEM_INLINE
 int
-_MCF_sem_signal(_MCF_sem* __sem) __MCF_NOEXCEPT;
+_MCF_sem_signal(_MCF_sem* __sem) __MCF_noexcept;
 
 /* Define inline functions after all declarations.
  * We would like to keep them away from declarations for conciseness, which also
@@ -86,19 +89,21 @@ _MCF_sem_signal(_MCF_sem* __sem) __MCF_NOEXCEPT;
  * this file.  */
 __MCF_SEM_INLINE
 int
-_MCF_sem_init(_MCF_sem* __sem, intptr_t __value_init) __MCF_NOEXCEPT
+_MCF_sem_init(_MCF_sem* __sem, intptr_t __value_init) __MCF_noexcept
   {
+    _MCF_sem __temp = { 0 };
+
     if((__value_init < 0) || (__value_init > __MCF_SEM_VALUE_MAX))
       return -1;
 
-    _MCF_sem __temp = { __value_init };
+    __temp.__value = __value_init;
     _MCF_atomic_store_pptr_rel(__sem, &__temp);
     return 0;
   }
 
 __MCF_SEM_INLINE
 intptr_t
-_MCF_sem_get(const _MCF_sem* __sem) __MCF_NOEXCEPT
+_MCF_sem_get(const _MCF_sem* __sem) __MCF_noexcept
   {
     _MCF_sem __temp;
     _MCF_atomic_load_pptr_rlx(&__temp, __sem);
@@ -107,10 +112,10 @@ _MCF_sem_get(const _MCF_sem* __sem) __MCF_NOEXCEPT
 
 __MCF_SEM_INLINE
 int
-_MCF_sem_signal(_MCF_sem* __sem) __MCF_NOEXCEPT
+_MCF_sem_signal(_MCF_sem* __sem) __MCF_noexcept
   {
     return _MCF_sem_signal_some(__sem, 1);
   }
 
-__MCF_C_DECLARATIONS_END
+__MCF_CXX(})  /* extern "C"  */
 #endif  /* __MCFGTHREAD_SEM_  */

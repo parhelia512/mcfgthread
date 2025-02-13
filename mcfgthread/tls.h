@@ -1,6 +1,9 @@
 /* This file is part of MCF Gthread.
- * See LICENSE.TXT for licensing information.
- * Copyleft 2022 - 2024, LH_Mouse. All wrongs reserved.  */
+ * Copyright (C) 2022-2025 LH_Mouse. All wrongs reserved.
+ *
+ * MCF Gthread is free software. Licensing information is included in
+ * LICENSE.TXT as a whole. The GCC Runtime Library Exception applies
+ * to this file.  */
 
 #ifndef __MCFGTHREAD_TLS_
 #define __MCFGTHREAD_TLS_
@@ -8,7 +11,7 @@
 #include "fwd.h"
 #include "atomic.h"
 
-__MCF_C_DECLARATIONS_BEGIN
+__MCF_CXX(extern "C" {)
 #ifndef __MCF_TLS_IMPORT
 #  define __MCF_TLS_IMPORT
 #  define __MCF_TLS_INLINE  __MCF_GNU_INLINE
@@ -51,28 +54,28 @@ struct __MCF_tls_key
  * obtained via `_MCF_get_win32_error()`.  */
 __MCF_TLS_IMPORT
 _MCF_tls_key*
-_MCF_tls_key_new(_MCF_tls_dtor* __dtor_opt) __MCF_NOEXCEPT;
+_MCF_tls_key_new(__MCF_cxa_dtor_any_ __dtor_opt) __MCF_noexcept;
 
 /* Get the number of references of a thread-local key.  */
 __MCF_TLS_INLINE __MCF_FN_PURE
 int32_t
-_MCF_tls_key_get_ref(const _MCF_tls_key* __key) __MCF_NOEXCEPT;
+_MCF_tls_key_get_ref(const _MCF_tls_key* __key) __MCF_noexcept;
 
 /* Adds a reference count of a thread-local key. This may be useful if you
  * wish to pass a pointer to other code.  */
 __MCF_TLS_INLINE
 void
-_MCF_tls_key_add_ref(_MCF_tls_key* __key) __MCF_NOEXCEPT;
+_MCF_tls_key_add_ref(_MCF_tls_key* __key) __MCF_noexcept;
 
 /* Drops a reference count of a thread-local key. When the reference count is
  * reduced to zero, the structure is deallocated.  */
 __MCF_TLS_IMPORT
 void
-_MCF_tls_key_drop_ref_nonnull(_MCF_tls_key* __key) __MCF_NOEXCEPT;
+_MCF_tls_key_drop_ref_nonnull(_MCF_tls_key* __key) __MCF_noexcept;
 
 __MCF_TLS_INLINE
 void
-_MCF_tls_key_drop_ref(_MCF_tls_key* __key_opt) __MCF_NOEXCEPT;
+_MCF_tls_key_drop_ref(_MCF_tls_key* __key_opt) __MCF_noexcept;
 
 /* Marks a thread-local key as deleted and drops a reference count of it. This
  * prevents the destructor from being invoked thereafter. Users should ensure
@@ -80,16 +83,16 @@ _MCF_tls_key_drop_ref(_MCF_tls_key* __key_opt) __MCF_NOEXCEPT;
  * This function makes a call to `_MCF_tls_key_drop_ref_nonnull()` implicitly.  */
 __MCF_TLS_INLINE
 void
-_MCF_tls_key_delete_nonnull(_MCF_tls_key* __key) __MCF_NOEXCEPT;
+_MCF_tls_key_delete_nonnull(_MCF_tls_key* __key) __MCF_noexcept;
 
 __MCF_TLS_INLINE
 void
-_MCF_tls_key_delete(_MCF_tls_key* __key_opt) __MCF_NOEXCEPT;
+_MCF_tls_key_delete(_MCF_tls_key* __key_opt) __MCF_noexcept;
 
 /* Gets the destructor, which may be null if none has been given.  */
 __MCF_TLS_INLINE __MCF_FN_PURE __MCF_CXX11(constexpr)
 _MCF_tls_dtor*
-_MCF_tls_key_get_destructor(const _MCF_tls_key* __key) __MCF_NOEXCEPT;
+_MCF_tls_key_get_destructor(const _MCF_tls_key* __key) __MCF_noexcept;
 
 /* Gets a value from the table.
  *
@@ -97,7 +100,7 @@ _MCF_tls_key_get_destructor(const _MCF_tls_key* __key) __MCF_NOEXCEPT;
  * otherwise. No return value is reserved to indicate errors.  */
 __MCF_TLS_IMPORT __MCF_FN_PURE
 void*
-__MCF_tls_table_get(const __MCF_tls_table* __table, const _MCF_tls_key* __key) __MCF_NOEXCEPT;
+__MCF_tls_table_get(const __MCF_tls_table* __table, const _MCF_tls_key* __key) __MCF_noexcept;
 
 /* Sets a value into the table.
  *
@@ -107,7 +110,7 @@ __MCF_tls_table_get(const __MCF_tls_table* __table, const _MCF_tls_key* __key) _
  * Returns 0 upon success and -1 upon failure.  */
 __MCF_TLS_IMPORT
 int
-__MCF_tls_table_xset(__MCF_tls_table* __table, _MCF_tls_key* __key, void** __old_value_opt, const void* __value_opt) __MCF_NOEXCEPT;
+__MCF_tls_table_xset(__MCF_tls_table* __table, _MCF_tls_key* __key, void** __old_value_opt, const void* __value_opt) __MCF_noexcept;
 
 /* Define inline functions after all declarations.
  * We would like to keep them away from declarations for conciseness, which also
@@ -116,14 +119,14 @@ __MCF_tls_table_xset(__MCF_tls_table* __table, _MCF_tls_key* __key, void** __old
  * this file.  */
 __MCF_TLS_INLINE
 int32_t
-_MCF_tls_key_get_ref(const _MCF_tls_key* __key) __MCF_NOEXCEPT
+_MCF_tls_key_get_ref(const _MCF_tls_key* __key) __MCF_noexcept
   {
     return _MCF_atomic_load_32_rlx(__key->__nref);
   }
 
 __MCF_TLS_INLINE
 void
-_MCF_tls_key_add_ref(_MCF_tls_key* __key) __MCF_NOEXCEPT
+_MCF_tls_key_add_ref(_MCF_tls_key* __key) __MCF_noexcept
   {
     int32_t __old_ref = _MCF_atomic_xadd_32_rlx(__key->__nref, 1);
     __MCF_ASSERT(__old_ref < 0x7FFFFFFF);
@@ -132,7 +135,7 @@ _MCF_tls_key_add_ref(_MCF_tls_key* __key) __MCF_NOEXCEPT
 
 __MCF_TLS_INLINE
 void
-_MCF_tls_key_drop_ref(_MCF_tls_key* __key_opt) __MCF_NOEXCEPT
+_MCF_tls_key_drop_ref(_MCF_tls_key* __key_opt) __MCF_noexcept
   {
     if(__key_opt)
       _MCF_tls_key_drop_ref_nonnull(__key_opt);
@@ -140,7 +143,7 @@ _MCF_tls_key_drop_ref(_MCF_tls_key* __key_opt) __MCF_NOEXCEPT
 
 __MCF_TLS_INLINE
 void
-_MCF_tls_key_delete_nonnull(_MCF_tls_key* __key) __MCF_NOEXCEPT
+_MCF_tls_key_delete_nonnull(_MCF_tls_key* __key) __MCF_noexcept
   {
     _MCF_atomic_store_8_rlx(__key->__deleted, 1);
     _MCF_tls_key_drop_ref_nonnull(__key);
@@ -148,7 +151,7 @@ _MCF_tls_key_delete_nonnull(_MCF_tls_key* __key) __MCF_NOEXCEPT
 
 __MCF_TLS_INLINE
 void
-_MCF_tls_key_delete(_MCF_tls_key* __key_opt) __MCF_NOEXCEPT
+_MCF_tls_key_delete(_MCF_tls_key* __key_opt) __MCF_noexcept
   {
     if(__key_opt)
       _MCF_tls_key_delete_nonnull(__key_opt);
@@ -156,10 +159,10 @@ _MCF_tls_key_delete(_MCF_tls_key* __key_opt) __MCF_NOEXCEPT
 
 __MCF_TLS_INLINE __MCF_CXX11(constexpr)
 _MCF_tls_dtor*
-_MCF_tls_key_get_destructor(const _MCF_tls_key* __key) __MCF_NOEXCEPT
+_MCF_tls_key_get_destructor(const _MCF_tls_key* __key) __MCF_noexcept
   {
     return __key->__dtor_opt;
   }
 
-__MCF_C_DECLARATIONS_END
+__MCF_CXX(})  /* extern "C"  */
 #endif  /* __MCFGTHREAD_TLS_  */

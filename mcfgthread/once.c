@@ -1,34 +1,38 @@
 /* This file is part of MCF Gthread.
- * See LICENSE.TXT for licensing information.
- * Copyleft 2022 - 2024, LH_Mouse. All wrongs reserved.  */
+ * Copyright (C) 2022-2025 LH_Mouse. All wrongs reserved.
+ *
+ * MCF Gthread is free software. Licensing information is included in
+ * LICENSE.TXT as a whole. The GCC Runtime Library Exception applies
+ * to this file.  */
 
-#include "precompiled.h"
+#include "xprecompiled.h"
 #define __MCF_ONCE_IMPORT  __MCF_DLLEXPORT
 #define __MCF_ONCE_INLINE  __MCF_DLLEXPORT
 #include "once.h"
-#include "xglobals.i"
+#include "xglobals.h"
 
 __MCF_DLLEXPORT
 int
 _MCF_once_wait_slow(_MCF_once* once, const int64_t* timeout_opt)
   {
-    _MCF_once old, new;
-    NTSTATUS status;
-
     __MCF_winnt_timeout nt_timeout;
     __MCF_initialize_winnt_timeout_v3(&nt_timeout, timeout_opt);
 
     /* If this flag has not been locked, lock it.
      * Otherwise, allocate a count for the current thread.  */
+    _MCF_once old, new;
   try_lock_loop:
     _MCF_atomic_load_pptr_acq(&old, once);
     do {
       if(old.__ready != 0)
         return 0;
 
-      new = old;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+      new.__ready = old.__ready;
       new.__locked = 1;
-      new.__nsleep = (old.__nsleep + old.__locked) & __MCF_MUTEX_NSLEEP_M;
+      new.__nsleep = old.__nsleep + old.__locked;
+#pragma GCC diagnostic pop
     }
     while(!_MCF_atomic_cmpxchg_weak_pptr_arl(once, &old, &new));
 
@@ -38,24 +42,23 @@ _MCF_once_wait_slow(_MCF_once* once, const int64_t* timeout_opt)
       return 1;
 
     /* Try waiting.  */
-    status = __MCF_keyed_event_wait(once, nt_timeout.__li);
-    while(status != STATUS_WAIT_0) {
+    int err = __MCF_keyed_event_wait(once, &nt_timeout);
+    while(err != 0) {
       /* Tell another thread which is going to signal this flag that an old
        * waiter has left by decrementing the number of sleeping threads. But
        * see below...  */
       _MCF_atomic_load_pptr_rlx(&old, once);
-      do {
-        if(old.__nsleep == 0)
-          break;
+      while(old.__nsleep != 0) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+        new.__ready = old.__ready;
+        new.__locked = old.__locked;
+        new.__nsleep = old.__nsleep - 1U;
+#pragma GCC diagnostic pop
 
-        new = old;
-        new.__nsleep = (old.__nsleep - 1U) & __MCF_ONCE_NSLEEP_M;
+        if(_MCF_atomic_cmpxchg_weak_pptr_rlx(once, &old, &new))
+          return (int) old.__ready - 1;
       }
-      while(!_MCF_atomic_cmpxchg_weak_pptr_rlx(once, &old, &new));
-
-      /* We may still return something meaningful here.  */
-      if(old.__nsleep != 0)
-        return ((int) old.__ready - 1) >> 8;
 
       /* ... It is possible that a second thread has already decremented the
        * counter. If this does take place, it is going to release the keyed
@@ -64,7 +67,7 @@ _MCF_once_wait_slow(_MCF_once* once, const int64_t* timeout_opt)
        * keyed event before us, so we set the timeout to zero. If we time out
        * once more, the third thread will have incremented the number of
        * sleeping threads and we can try decrementing it again.  */
-      status = __MCF_keyed_event_wait(once, (LARGE_INTEGER[]) { 0 });
+      err = __MCF_keyed_event_wait(once, &(__MCF_winnt_timeout) { 0 });
     }
 
     /* We have got notified.  */
@@ -77,15 +80,18 @@ void
 _MCF_once_abort(_MCF_once* once)
   {
     /* Clear the `__locked` field and release at most one thread, if any.  */
-    size_t wake_one;
+    bool wake_one;
     _MCF_once old, new;
-
     _MCF_atomic_load_pptr_rlx(&old, once);
     do {
-      new = old;
+      wake_one = old.__nsleep != 0;
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+      new.__ready = old.__ready;
       new.__locked = 0;
-      wake_one = _MCF_minz(old.__nsleep, 1);
-      new.__nsleep = (old.__nsleep - wake_one) & __MCF_ONCE_NSLEEP_M;
+      new.__nsleep = old.__nsleep - wake_one;
+#pragma GCC diagnostic pop
     }
     while(!_MCF_atomic_cmpxchg_weak_pptr_rlx(once, &old, &new));
 

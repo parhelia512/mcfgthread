@@ -1,14 +1,17 @@
 /* This file is part of MCF Gthread.
- * See LICENSE.TXT for licensing information.
- * Copyleft 2022 - 2024, LH_Mouse. All wrongs reserved.  */
+ * Copyright (C) 2022-2025 LH_Mouse. All wrongs reserved.
+ *
+ * MCF Gthread is free software. Licensing information is included in
+ * LICENSE.TXT as a whole. The GCC Runtime Library Exception applies
+ * to this file.  */
 
-#include "precompiled.h"
+#include "xprecompiled.h"
 #define __MCF_XGLOBALS_IMPORT  __MCF_DLLEXPORT
 #define __MCF_XGLOBALS_INLINE  __MCF_DLLEXPORT
 #define __MCF_XGLOBALS_READONLY
-#include "xglobals.i"
+#include "xglobals.h"
 
-__MCF_DLLEXPORT
+__MCF_DLLEXPORT __attribute__((__used__))
 EXCEPTION_DISPOSITION
 __cdecl
 __MCF_seh_top(EXCEPTION_RECORD* rec, PVOID estab_frame, CONTEXT* ctx, PVOID disp_ctx)
@@ -18,7 +21,7 @@ __MCF_seh_top(EXCEPTION_RECORD* rec, PVOID estab_frame, CONTEXT* ctx, PVOID disp
     (void) disp_ctx;
 
     /* Check for uncaught C++ exceptions.  */
-    DWORD r = rec->ExceptionFlags & EXCEPTION_NONCONTINUABLE;
+    ULONG r = rec->ExceptionFlags & EXCEPTION_NONCONTINUABLE;
     r |= (rec->ExceptionCode & 0x20FFFFFFU) - 0x20474343U;  /* (1 << 29) | 'GCC'  */
     return r ? ExceptionContinueSearch : ExceptionContinueExecution;
   }
@@ -28,7 +31,7 @@ void
 __MCF_initialize_winnt_timeout_v3(__MCF_winnt_timeout* to, const int64_t* ms_opt)
   {
     /* Initialize it to an infinite value.  */
-    to->__li->QuadPart = INT64_MAX;
+    to->__li.QuadPart = INT64_MAX;
     to->__since = 0;
 
     /* If no timeout is given, wait indefinitely.  */
@@ -42,7 +45,7 @@ __MCF_initialize_winnt_timeout_v3(__MCF_winnt_timeout* to, const int64_t* ms_opt
       if(*ms_opt > 910692730085477)
         return;
 
-      to->__li->QuadPart = (11644473600000 + *ms_opt) * 10000;
+      to->__li.QuadPart = (11644473600000 + *ms_opt) * 10000;
     }
     else if(*ms_opt < 0) {
       /* If `*ms_opt` is negative, it denotes the number of milliseconds to
@@ -50,11 +53,11 @@ __MCF_initialize_winnt_timeout_v3(__MCF_winnt_timeout* to, const int64_t* ms_opt
       if(*ms_opt < -922337203685477)
         return;
 
-      to->__li->QuadPart = *ms_opt * 10000;
+      to->__li.QuadPart = *ms_opt * 10000;
       QueryUnbiasedInterruptTime(&(to->__since));
     }
     else
-      to->__li->QuadPart = 0;
+      to->__li.QuadPart = 0;
   }
 
 __MCF_DLLEXPORT
@@ -62,18 +65,18 @@ void
 __MCF_adjust_winnt_timeout_v3(__MCF_winnt_timeout* to)
   {
     /* Absolute timeouts need no adjustment.  */
-    if(to->__li->QuadPart >= 0)
+    if(to->__li.QuadPart >= 0)
       return;
 
     /* Add the number of 100 nanoseconds that have elapsed so far, to the
      * timeout which is negative, using saturation arithmetic.  */
     ULONGLONG old_since = to->__since;
     QueryUnbiasedInterruptTime(&(to->__since));
-    to->__li->QuadPart += (LONGLONG) (to->__since - old_since);
-    to->__li->QuadPart &= to->__li->QuadPart >> 63;
+    to->__li.QuadPart += (LONGLONG) (to->__since - old_since);
+    to->__li.QuadPart &= to->__li.QuadPart >> 63;
   }
 
-__MCF_DLLEXPORT
+__MCF_DLLEXPORT __MCF_NEVER_INLINE
 size_t
 __MCF_batch_release_common(const void* key, size_t count)
   {
@@ -81,7 +84,7 @@ __MCF_batch_release_common(const void* key, size_t count)
      * they are waiting. We don't release the keyed event in this case, as it
      * blocks the calling thread infinitely if there is no thread to wake up.
      * See <https://github.com/lhmouse/mcfgthread/issues/21>.  */
-    if(RtlDllShutdownInProgress())
+    if(__MCF_is_process_shutting_down())
       return 0;
 
     for(size_t k = 0;  k != count;  ++k)
@@ -91,25 +94,34 @@ __MCF_batch_release_common(const void* key, size_t count)
     return count;
   }
 
-__MCF_DLLEXPORT
+__MCF_DLLEXPORT __MCF_NEVER_INLINE
 int
-__MCF_win32_error_i(DWORD code, int val)
+__MCF_win32_error_i(ULONG code, int val)
   {
     SetLastError(code);
     return val;
   }
 
-__MCF_DLLEXPORT
+__MCF_DLLEXPORT __MCF_NEVER_INLINE
 void*
-__MCF_win32_error_p(DWORD code, void* ptr)
+__MCF_win32_error_p(ULONG code, void* ptr)
   {
     SetLastError(code);
     return ptr;
   }
 
+__MCF_DLLEXPORT __MCF_NEVER_INLINE
+void*
+__MCF_win32_ntstatus_p(NTSTATUS status, void* ptr)
+  {
+    SetLastError(RtlNtStatusToDosError(status));
+    return ptr;
+  }
+
 static
 int
-do_static_dtor_queue_pop(__MCF_dtor_element* elem, _MCF_mutex* mtx, __MCF_dtor_queue* queue, void* dso)
+__fastcall
+do_pop_static_dtor(__MCF_dtor_element* elem, _MCF_mutex* mtx, __MCF_dtor_queue* queue, void* dso)
   {
     _MCF_mutex_lock(mtx, __MCF_nullptr);
     int err = __MCF_dtor_queue_pop(elem, queue, dso);
@@ -119,28 +131,18 @@ do_static_dtor_queue_pop(__MCF_dtor_element* elem, _MCF_mutex* mtx, __MCF_dtor_q
 
 __MCF_DLLEXPORT
 void
-__MCF_run_dtors_at_quick_exit(void* dso)
+__MCF_run_static_dtors(_MCF_mutex* mtx, __MCF_dtor_queue* queue, void* dso)
   {
     __MCF_SEH_DEFINE_TERMINATE_FILTER;
     __MCF_dtor_element elem;
 
-    while(do_static_dtor_queue_pop(&elem, __MCF_g->__cxa_at_quick_exit_mtx, __MCF_g->__cxa_at_quick_exit_queue, dso) == 0)
-      __MCF_invoke_cxa_dtor(elem.__dtor, elem.__this);
-  }
-
-__MCF_DLLEXPORT
-void
-__MCF_run_dtors_atexit(void* dso)
-  {
-    __MCF_SEH_DEFINE_TERMINATE_FILTER;
-    __MCF_dtor_element elem;
-
-    while(do_static_dtor_queue_pop(&elem, __MCF_g->__cxa_atexit_mtx, __MCF_g->__cxa_atexit_queue, dso) == 0)
+    while(do_pop_static_dtor(&elem, mtx, queue, dso) == 0)
       __MCF_invoke_cxa_dtor(elem.__dtor, elem.__this);
   }
 
 static
 void
+__fastcall
 do_encode_numeric_field(wchar_t* ptr, size_t width, uint64_t value, const wchar_t* digits)
   {
     wchar_t* eptr = ptr + width;
@@ -158,13 +160,32 @@ do_encode_numeric_field(wchar_t* ptr, size_t width, uint64_t value, const wchar_
       *--eptr = digits[0];
   }
 
-static
+__MCF_DLLEXPORT
 void
-do_on_process_attach(void)
+__MCF_gthread_initialize_globals(void)
   {
+    /* Ensure we don't mess things up.  */
+    __MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, __self_ptr) == 0);
+    __MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, __self_size) == __MCF_64_32(8, 4));
+    __MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, __tls_index) == __MCF_64_32(12, 8));
+    __MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, __main_thread) == __MCF_64_32(16, 16));
+    __MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, __exit_mtx) == __MCF_64_32(1616, 816));
+    __MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, __exit_queue) == __MCF_64_32(1624, 820));
+    __MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, __quick_exit_mtx) == __MCF_64_32(3152, 1584));
+    __MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, __quick_exit_queue) == __MCF_64_32(3160, 1588));
+    __MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, __mutex_spin_field) == __MCF_64_32(4736, 2368));
+    __MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, __interrupt_cond) == __MCF_64_32(6784, 4416));
+    __MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, __f_GetSystemTimePreciseAsFileTime) == __MCF_64_32(6792, 4420));
+    __MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, __f_QueryInterruptTime) == __MCF_64_32(6800, 4424));
+    __MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, __thread_oom_mtx) == __MCF_64_32(6808, 4428));
+    __MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, __thread_oom_self_st) == __MCF_64_32(6816, 4432));
+
     /* Initialize static global constants.  */
     GetSystemInfo(&__MCF_crt_sysinfo);
 
+#ifdef __MCF_DEBUG
+    __MCF_CHECK(HeapSetInformation(NULL, HeapEnableTerminationOnCorruption, __MCF_nullptr, 0));
+#endif
     __MCF_crt_heap = GetProcessHeap();
     __MCF_CHECK(__MCF_crt_heap);
 
@@ -172,50 +193,50 @@ do_on_process_attach(void)
     __MCF_CHECK(QueryPerformanceFrequency(&pfreq));
     __MCF_crt_pf_recip = 1000 / (double) pfreq.QuadPart;
 
-    /* Initialize dynamic global shared data.  */
-    static WCHAR gnbuffer[] = L"Local\\__MCF_crt_xglobals_*?pid???_#?cookie????????";
-    static UNICODE_STRING gname = { .Buffer = gnbuffer, .Length = sizeof(gnbuffer) - sizeof(WCHAR), .MaximumLength = sizeof(gnbuffer) };
-    static OBJECT_ATTRIBUTES gattrs = { .Length = sizeof(OBJECT_ATTRIBUTES), .ObjectName = &gname, .Attributes = OBJ_OPENIF | OBJ_EXCLUSIVE };
-    static LARGE_INTEGER gsize = { .QuadPart = sizeof(__MCF_crt_xglobals) };
+    __MCF_CHECK(GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_PIN, L"KERNELBASE.DLL", &__MCF_crt_kernelbase));
+    __MCF_CHECK(GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_PIN, L"NTDLL.DLL", &__MCF_crt_ntdll));
+
+    __MCF_crt_TlsGetValue = TlsGetValue;
+    __MCF_LAZY_LOAD(&__MCF_crt_TlsGetValue, __MCF_crt_kernelbase, TlsGetValue2);
 
     /* Generate the unique name for this process.  */
-    DWORD pid = GetCurrentProcessId();
-    UINT64 cookie = (UINT_PTR) EncodePointer((PVOID) ~(UINT_PTR) (pid * 0x100000001ULL)) * 0x9E3779B97F4A7C15ULL;
-
+    static WCHAR gnbuffer[] = L"Local\\__MCF_crt_xglobals_*?pid???_#?cookie????????";
+    UNICODE_STRING gname = __MCF_NT_STRING_INIT(gnbuffer);
     __MCF_ASSERT(gnbuffer[25] == L'*');
+    ULONG pid = GetCurrentProcessId();
     do_encode_numeric_field(gnbuffer + 25, 8, pid, L"0123456789ABCDEF");
     __MCF_ASSERT(gnbuffer[34] == L'#');
+    UINT64 cookie = (UINT_PTR) EncodePointer((PVOID) ~(UINT_PTR) (pid * 0x100000001ULL)) * 0x9E3779B97F4A7C15ULL;
     do_encode_numeric_field(gnbuffer + 34, 16, cookie, L"GHJKLMNPQRSTUWXY");
     __MCF_ASSERT(gnbuffer[50] == 0);
 
-    __MCF_CHECK_NT(BaseGetNamedObjectDirectory(&(gattrs.RootDirectory)));
-    __MCF_ASSERT(gattrs.RootDirectory);
+    /* Allocate or open storage for global data. We are in the DLL main routine,
+     * so locking is not necessary.  */
+    OBJECT_ATTRIBUTES gattrs;
+    HANDLE gdir = __MCF_get_directory_for_named_objects();
+    __MCF_ASSERT(gdir);
+    InitializeObjectAttributes(&gattrs, &gname, OBJ_OPENIF | OBJ_EXCLUSIVE, gdir, __MCF_nullptr);
+    HANDLE gfile = __MCF_create_named_section(&gattrs, sizeof(__MCF_crt_xglobals));
+    __MCF_CHECK(gfile);
 
-    /* Allocate or open storage for global data.
-     * We are in the DLL main routine, so locking is unnecessary.  */
-    HANDLE gfile;
-    __MCF_CHECK_NT(NtCreateSection(&gfile, STANDARD_RIGHTS_REQUIRED | SECTION_MAP_READ | SECTION_MAP_WRITE, &gattrs, &gsize, PAGE_READWRITE, SEC_COMMIT, __MCF_nullptr));
-    __MCF_ASSERT(gfile);
-
-    /* Get a pointer to this named region. Unlike `CreateFileMappingW()`,
-     * the view shall not be inherited by child processes.  */
-    PVOID gmem_base = __MCF_nullptr;
-    SIZE_T gmem_size = 0;
-    __MCF_CHECK_NT(NtMapViewOfSection(gfile, GetCurrentProcess(), &gmem_base, 0, 0, __MCF_nullptr, &gmem_size, 2, 0, PAGE_READWRITE));
+    /* Get a pointer to this named region. Unlike `CreateFileMappingW()`, the
+     * view shall not be inherited by child processes.  */
+    void* gmem_base = __MCF_nullptr;
+    size_t gmem_size = 0;
+    __MCF_map_view_of_section(gfile, &gmem_base, &gmem_size, false);
     __MCF_ASSERT(gmem_base);
-    __MCF_ASSERT(gmem_size >= sizeof(__MCF_crt_xglobals));
     __MCF_g = gmem_base;
 
     if(__MCF_g->__self_ptr) {
       /* Reuse the existent region and close excess handles.  */
       __MCF_g = __MCF_g->__self_ptr;
-      __MCF_CHECK(__MCF_g->__self_size >= sizeof(__MCF_crt_xglobals));
-
-      NtUnmapViewOfSection(GetCurrentProcess(), gmem_base);
+      __MCF_unmap_view_of_section(gmem_base);
       __MCF_close_handle(gfile);
       return;
     }
 
+    /* The region is new, so initialize it.  */
+    __MCF_CHECK(gmem_size >= sizeof(__MCF_crt_xglobals));
     __MCF_g->__self_ptr = __MCF_g;
     __MCF_g->__self_size = sizeof(__MCF_crt_xglobals);
 
@@ -223,36 +244,25 @@ do_on_process_attach(void)
     __MCF_g->__tls_index = TlsAlloc();
     __MCF_CHECK(__MCF_g->__tls_index != UINT32_MAX);
 
-    /* Perform lazy binding on some functions.  */
-#define do_set_lazy_binding_(dll, proc)  \
-    do {  \
-      decltype_##proc** pp_##proc = __MCF_G_FIELD_OPT(__f_##proc);  \
-      if(!pp_##proc)  \
-        break;  \
-      HMODULE mod_##proc = GetModuleHandleW(L##dll ".DLL");  \
-      if(!mod_##proc)  \
-        break;  \
-      *pp_##proc = (decltype_##proc*)(INT_PTR) GetProcAddress(mod_##proc, #proc);  \
-    }  \
-    while(false)  /* no semicolon  */
+    /* Perform lazy binding for newer functions.  */
+    __MCF_G_SET_LAZY(__MCF_crt_kernelbase, GetSystemTimePreciseAsFileTime);  /* win8 */
+    __MCF_G_SET_LAZY(__MCF_crt_kernelbase, QueryInterruptTime);  /* win10 */
 
-    /* Window 8  */
-    do_set_lazy_binding_("KERNEL32", GetSystemTimePreciseAsFileTime);
-
-    /* Attach the main thread. The structure should be all zeroes so no
-     * initialization is necessary.  */
+    /* Attach the main thread and make it joinable. The structure should
+     * be all zeroes so no initialization is necessary.  */
     __MCF_thread_attach_foreign(__MCF_g->__main_thread);
+    _MCF_atomic_store_32_rel(__MCF_g->__main_thread->__nref, 2);
   }
 
-static
+__MCF_DLLEXPORT
 void
-do_on_thread_detach(void)
+__MCF_gthread_on_thread_exit(void)
   {
     __MCF_SEH_DEFINE_TERMINATE_FILTER;
     __MCF_dtor_element elem;
     __MCF_tls_table tls;
 
-    _MCF_thread* self = TlsGetValue(__MCF_g->__tls_index);
+    _MCF_thread* self = __MCF_crt_TlsGetValue(__MCF_g->__tls_index);
     if(!self)
       return;
 
@@ -271,8 +281,8 @@ do_on_thread_detach(void)
     /* Call destructors of TLS keys. The TLS table may be modified by
      * destructors, so swap it out first.  */
     while(self->__tls_table->__begin) {
-      __builtin_memcpy(&tls, self->__tls_table, sizeof(__MCF_tls_table));
-      __builtin_memset(self->__tls_table, 0, sizeof(__MCF_tls_table));
+      __MCF_mcopy(&tls, self->__tls_table, sizeof(__MCF_tls_table));
+      __MCF_mzero(self->__tls_table, sizeof(__MCF_tls_table));
 
       while(tls.__begin != tls.__end) {
         tls.__end --;
@@ -284,7 +294,7 @@ do_on_thread_detach(void)
 
         /* Call the destructor only if the value is not a null pointer, as
          * per POSIX.  */
-        if(tls.__end->__value_opt && tkey->__dtor_opt && !_MCF_atomic_load_8_rlx(tkey->__deleted))
+        if(!_MCF_atomic_load_8_rlx(tkey->__deleted) && tkey->__dtor_opt && tls.__end->__value_opt)
           __MCF_invoke_cxa_dtor(tkey->__dtor_opt, tls.__end->__value_opt);
 
         /* Deallocate the key.  */
@@ -292,7 +302,8 @@ do_on_thread_detach(void)
       }
 
       /* Deallocate the table which should be empty now.  */
-      __MCF_mfree(tls.__begin);
+      if(tls.__begin)
+        __MCF_mfree_nonnull(tls.__begin);
     }
 
     /* Poison this value.  */
@@ -300,74 +311,127 @@ do_on_thread_detach(void)
     _MCF_thread_drop_ref_nonnull(self);
   }
 
-static
+#ifdef __MCF_IN_DLL
+
+/* When building the shared library, invoke common routines from the DLL
+ * entry point callback. This has the same signature as `DllMain()`.  */
+#  if defined _MSC_VER
+#    define DllMainCRTStartup  _DllMainCRTStartup
+#  endif
+
+int
+__stdcall
+DllMainCRTStartup(PVOID instance, ULONG reason, PVOID reserved);
+
+__MCF_REALIGN_SP
+int
+__stdcall
+DllMainCRTStartup(PVOID instance, ULONG reason, PVOID reserved)
+  {
+    ULONG dummy1;
+    HMODULE dummy2 = reserved;
+
+    switch(reason)
+      {
+      case DLL_PROCESS_ATTACH:
+        __MCF_gthread_initialize_globals();
+        dummy1 = GET_MODULE_HANDLE_EX_FLAG_PIN | GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS;
+        __MCF_CHECK(GetModuleHandleExW(dummy1, instance, &dummy2));
+        __MCF_CHECK(VirtualProtect((void*) &__MCF_g, sizeof(__MCF_g), PAGE_READONLY, &dummy1));
+        return 1;
+
+      case DLL_THREAD_DETACH:
+        __MCF_gthread_on_thread_exit();
+        return 1;
+
+      default:
+        return 1;
+      }
+  }
+
+void*
+memcpy(void* dst, const void* src, size_t size)
+  {
+    return __MCF_mcopy(dst, src, size);
+  }
+
+void*
+memset(void* dst, int val, size_t size)
+  {
+    return __MCF_mfill(dst, val, size);
+  }
+
+#  if defined __i386__
+extern const PVOID __safe_se_handler_table[];
+extern const ULONG __safe_se_handler_count;
+#  endif
+
+__attribute__((__used__))
+const IMAGE_LOAD_CONFIG_DIRECTORY _load_config_used =
+  {
+    .Size = sizeof(IMAGE_LOAD_CONFIG_DIRECTORY),
+#  if defined __i386__ && defined _MSC_VER
+    .SEHandlerTable = (ULONG_PTR) __safe_se_handler_table,
+    .SEHandlerCount = (ULONG_PTR) &__safe_se_handler_count,
+#  endif
+  };
+
+#  if defined _MSC_VER
+__attribute__((__used__))
+const int _fltused = 0x9875;  /* dunno what it does but LINK complains.  */
+#  endif
+
+#else  /* __MCF_IN_DLL  */
+
+/* When building the static library, invoke common routines from a TLS
+ * callback.  */
+static __MCF_REALIGN_SP
 void
 __stdcall
-do_image_tls_callback(PVOID module, DWORD reason, LPVOID reserved)
+do_tls_callback(PVOID module, ULONG reason, LPVOID reserved)
   {
     (void) module;
     (void) reserved;
 
-    /* Perform global initialization and per-thread cleanup as needed.
-     * Note, upon `DLL_PROCESS_DETACH`, no cleanup is performed, because
-     * other DLLs might have been unloaded and we would be referencing
-     * unmapped memory. User code should call `__cxa_finalize(__MCF_nullptr)` before
-     * exiting from a process.  */
-    if(reason == DLL_PROCESS_ATTACH)
-      do_on_process_attach();
-    else if(reason == DLL_THREAD_DETACH)
-      do_on_thread_detach();
+    switch(reason)
+      {
+      case DLL_PROCESS_ATTACH:
+        __MCF_gthread_initialize_globals();
+        return;
+
+      case DLL_THREAD_DETACH:
+        __MCF_gthread_on_thread_exit();
+        return;
+
+      default:
+        return;
+      }
   }
 
-#ifdef DLL_EXPORT
+/* This requires the main executable be linked with 'tlssup.o'. Such
+ * initialization shall happen as early as possible.  */
+#  if defined _MSC_VER
+__pragma(section(".CRT$XLB", read))
+__pragma(comment(linker, "/include:" __MCF_USYM "_tls_used"))
+#  endif
 
-/* When building the shared library, invoke the common routine from the DLL
- * entry point callback. The decorated name is fabricated such that it
- * remains the same on both x86 and x86-64.  */
-int
-__stdcall
-__MCF_dll_startup(PVOID instance, DWORD reason, PVOID reserved)
-  __asm__("__MCF_dll_startup@@Z");
+__attribute__((__section__(".CRT$XLB"), __used__))
+const PIMAGE_TLS_CALLBACK __MCF_crt_xl_b = do_tls_callback;
 
-int
-__stdcall
-__MCF_dll_startup(PVOID instance, DWORD reason, PVOID reserved)
-  {
-    /* Call the common routine. This will not fail.  */
-    do_image_tls_callback(instance, reason, reserved);
-
-    if(reason != DLL_PROCESS_ATTACH)
-      return 1;
-
-    /* Freeze the `.data` section.  */
-    PVOID base = &__MCF_g;
-    SIZE_T size = sizeof(__MCF_g);
-    DWORD dummy;
-    __MCF_CHECK_NT(NtProtectVirtualMemory(GetCurrentProcess(), &base, &size, PAGE_READONLY, &dummy));
-
-    /* Prevent this DLL from being unloaded.  */
-    __MCF_CHECK_NT(LdrAddRefDll(1, instance));
-    return 1;
-  }
-
-#else  /* DLL_EXPORT  */
-
-/* When building the static library, invoke the common routine from a TLS
- * callback. This requires the main executable be linked with 'tlssup.o'.
- * Such initialization should happen as early as possible.  */
-extern const PIMAGE_TLS_CALLBACK __MCF_xl_b;
-const PIMAGE_TLS_CALLBACK __MCF_xl_b __attribute__((__section__(".CRT$XLB"), __used__)) = do_image_tls_callback;
-
-#endif  /* DLL_EXPORT  */
+#endif  /* __MCF_IN_DLL  */
 
 /* These are constants that have to be initialized at load time. The
  * initializers prevent them from being placed into the`.bss` section.  */
+const GUID __MCF_crt_gthread_guid = __MCF_GUID(9FB2D15C,C5F2,4AE7,868D,2769591B8E92);
 HANDLE __MCF_crt_heap = __MCF_BAD_PTR;
 double __MCF_crt_pf_recip = 1;
 SYSTEM_INFO __MCF_crt_sysinfo = { .dwPageSize = 1 };
+HMODULE __MCF_crt_kernelbase = __MCF_BAD_PTR;
+HMODULE __MCF_crt_ntdll = __MCF_BAD_PTR;
+decltype_TlsGetValue2* __MCF_crt_TlsGetValue = __MCF_BAD_PTR;
 
 /* This is a pointer to global data. If this library is linked statically,
  * all instances of this pointer in the same process should point to the
  * same memory. The initializer prevents it from being placed into the
  * `.bss` section.  */
-__MCF_crt_xglobals* __MCF_g = __MCF_BAD_PTR;
+__MCF_crt_xglobals* restrict __MCF_g = __MCF_BAD_PTR;

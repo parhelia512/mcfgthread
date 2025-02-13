@@ -5,50 +5,53 @@ implements the _gthread interface set_, which is used internally both by **GCC**
 to provide synchronization of initialization of local static objects, and by
 **libstdc++** to provide C++11 threading facilities.
 
-I decide to recreate everything from scratch. Apologies for the trouble.
+> [!WARNING]
+> This project uses some undocumented NT system calls and is not guaranteed to
+> work on some Windows versions. The author gives no warranty for this project.
+> Use it at your own risk.
 
 ## How to Build
 
 Compiling natively can be done in MSYS2. We take the UCRT64 shell as an example.
 Others are similar. Clang shells are also supported.
 
-**WARNING** If you are using [GCC with the MCF thread model](https://gcc-mcf.lhmouse.com/),
-you must build _libmcfgthread-1.dll_ before anything else. Meson creates the DLL
-in the working directory, which might get picked up by cc1.exe when it is only
-half-baked, because [Microsoft documentation says that DLLs in the working directory
-take precedence over those in PATH.](https://learn.microsoft.com/en-us/windows/win32/dlls/dynamic-link-library-search-order#standard-search-order-for-unpackaged-apps).
+> [!CAUTION]
+> If you are using [GCC with the MCF thread model](https://gcc-mcf.lhmouse.com/),
+> you must build _libmcfgthread-1.dll_ before anything else. Meson creates the DLL
+> in the working directory, which might get picked up by the compiler when it is
+> only half-baked. Microsoft documentation says that [DLLs in the working directory
+> take precedence over those in PATH](https://learn.microsoft.com/en-us/windows/win32/dlls/dynamic-link-library-search-order#standard-search-order-for-unpackaged-apps).
+> There is no immediate plan on fixing this.
 
 ```sh
 pacman -S --noconfirm mingw-w64-ucrt-x86_64-{{headers,crt,tools}-git,gcc,binutils,meson}
-meson setup build_dir
-ninja libmcfgthread-1.dll  # see warning above
-meson test -Cbuild_dir
+meson setup build_debug
+cd build_debug
+ninja libmcfgthread-1.dll  # see CAUTION above
+ninja test
 ```
 
 Cross-compiling from Debian, Ubuntu or Linux Mint is supported. In order to run
 tests, Wine is required.
 
 ```sh
-sudo apt-get install -y --no-install-recommends mingw-w64-{x86-64-dev,tools} {gcc,g++,binutils}-mingw-w64-x86-64 meson wine wine-binfmt
-meson setup --cross-file meson.cross.x86_64-w64-mingw32 build_dir
-meson test -Cbuild_dir
+sudo apt-get install -y --no-install-recommends mingw-w64-{x86-64-dev,tools}  \
+        {gcc,g++,binutils}-mingw-w64-x86-64 meson wine wine-binfmt
+meson setup --cross-file meson.cross.x86_64-w64-mingw32 build_debug
+cd build_debug
+ninja test
 ```
 
-## Notes
-
-In order for `__cxa_atexit()` (and the non-standard `__cxa_at_quick_exit()`) to
-conform to the Itanium C++ ABI, it is required 1) for a process to call
-`__cxa_finalize(NULL)` when exiting, and 2) for a DLL to call
-`__cxa_finalize(&__dso_handle)` when it is unloaded dynamically. This requires
-[hacking the CRT](https://github.com/lhmouse/MINGW-packages/blob/0274a6e7e0da258cf5e32efe6e4427454741fa32/mingw-w64-crt-git/9003-crt-Implement-standard-conforming-termination-suppor.patch). If you don't
-have the modified CRT, you may still get standard compliance by 1) calling
-`__MCF_exit()` instead of `exit()` from your program, and 2) calling
-`__cxa_finalize(&__dso_handle)` followed by `fflush(NULL)` upon receipt of
-`DLL_PROCESS_DETACH` in your `DllMain()`.
-
-This project uses some undocumented NT system calls and is not guaranteed to
-work on some Windows versions. The author gives no warranty for this project.
-Use it at your own risk.
+> [!TIP]
+> In order for `__cxa_atexit()` (and the non-standard `__cxa_at_quick_exit()`) to
+> conform to the Itanium C++ ABI, it is required 1) for a process to call
+> `__cxa_finalize(NULL)` when exiting, and 2) for a DLL to call
+> `__cxa_finalize(&__dso_handle)` when it is unloaded dynamically. This requires
+> [hacking the CRT](https://github.com/lhmouse/MINGW-packages/blob/0274a6e7e0da258cf5e32efe6e4427454741fa32/mingw-w64-crt-git/9003-crt-Implement-standard-conforming-termination-suppor.patch). If you don't
+> have the modified CRT, you may still get standard compliance by 1) calling
+> `__MCF_exit()` instead of `exit()` from your program, and 2) calling
+> `__cxa_finalize(&__dso_handle)` followed by `fflush(NULL)` upon receipt of
+> `DLL_PROCESS_DETACH` in your `DllMain()`.
 
 ## Benchmarking
 
@@ -57,10 +60,10 @@ Use it at your own risk.
 * **SRWLOCK**: Windows `SRWLOCK`
 * **CRITICAL_SECTION**: Windows `CRITICAL_SECTION`
 * **WINPTHREAD**: winpthread `pthread_mutex_t`
-* **MCFGTHREAD**: mcfgthread `_MCF_mutex` with `-fno-inline`
+* **MCFGTHREAD**: mcfgthread `_MCF_mutex` without inlining
 
 These are results of [the test program](mutex_performance.c) on an x86-64
- *Windows 10* machine with a 10-core *Intel i9 10900K* processor:
+*Windows 10* machine with a 10-core *Intel i9 10900K* processor:
 
 | #THREADS | #ITERATIONS |       SRWLOCK | CRITICAL_SECTION |    WINPTHREAD |    MCFGTHREAD |
 |---------:|------------:|--------------:|-----------------:|--------------:|--------------:|
@@ -86,6 +89,20 @@ And these are results of the same program on *Wine 6.0.3* on an x86-64
 |       20 |     200,000 |  2721.077 ms  |     4262.151 ms  |  1966.195 ms  |**1340.997 ms**|
 |       60 |      60,000 |  2397.048 ms  |     3807.141 ms  |  1530.147 ms  |**1511.931 ms**|
 |      200 |      20,000 |  2632.933 ms  |     4148.604 ms  |**1615.904 ms**|  1784.553 ms  |
+
+And these are results of the same program on an ARM *Windows 11* machine with
+an 8-core *Qualcomm Snapdragon 8cx Gen 3* processor, compiled with Clang:
+
+| #THREADS | #ITERATIONS |       SRWLOCK | CRITICAL_SECTION |    WINPTHREAD |    MCFGTHREAD |
+|---------:|------------:|--------------:|-----------------:|--------------:|--------------:|
+|        1 |  10,000,000 |  2105.027 ms  |     2164.209 ms  |  2122.998 ms  |**2033.915 ms**|
+|        2 |   5,000,000 |  1701.007 ms  |     1620.484 ms  |  1547.963 ms  |**1496.309 ms**|
+|        4 |   2,000,000 |**1395.439 ms**|     3067.075 ms  |  2583.215 ms  |  1525.453 ms  |
+|        6 |   1,000,000 |**1181.352 ms**|     4334.280 ms  |  2167.916 ms  |  1354.046 ms  |
+|       10 |     500,000 |  2738.153 ms  |     2799.624 ms  |**2687.904 ms**|  2739.022 ms  |
+|       20 |     100,000 |  3259.999 ms  |   **3220.732 ms**|  3287.581 ms  |  3291.146 ms  |
+|       60 |      30,000 |  2931.157 ms  |     2934.896 ms  |  2938.784 ms  |**2922.015 ms**|
+|      200 |      10,000 |**3197.414 ms**|     3216.323 ms  |  3221.090 ms  |  3229.249 ms  |
 
 ## Implementation details
 
@@ -150,3 +167,57 @@ setting the READY byte, so the next thread that locks the primitive mutex will
 perform initialization. If initialization is successful, it sets the READY byte
 and unlocks the primitive mutex, releasing all threads that are waiting on it.
 (Do you remember that a primitive mutex actually contains a condition variable?)
+
+### List of imported functions
+
+|Function                       |DLL             |Category                   |
+|:------------------------------|:---------------|:------------------------- |
+|`BaseGetNamedObjectDirectory`  |KERNEL32        |Undocumented |
+|`CreateThread`                 |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createthread) |
+|`DecodePointer`                |KERNEL32, NTDLL |[Windows API](https://learn.microsoft.com/en-us/previous-versions/bb432242(v=vs.85)) |
+|`EncodePointer`                |KERNEL32, NTDLL |[Windows API](https://learn.microsoft.com/en-us/previous-versions/bb432254(v=vs.85)) |
+|`ExitThread`                   |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-exitthread) |
+|`FormatMessageW`               |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-formatmessagew) |
+|`GetCurrentProcessId`          |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-getcurrentprocessid) |
+|`GetLastError`                 |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/errhandlingapi/nf-errhandlingapi-getlasterror) |
+|`GetModuleFileNameW`           |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-getmodulefilenamew) |
+|`GetModuleHandleExW`           |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-getmodulehandleexw) |
+|`GetProcAddress`               |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-getprocaddress) |
+|`GetProcessHeap`               |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/heapapi/nf-heapapi-getprocessheap) |
+|`GetSystemInfo`                |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/sysinfoapi/nf-sysinfoapi-getsysteminfo) |
+|`GetSystemTimeAsFileTime`      |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/sysinfoapi/nf-sysinfoapi-getsystemtimeasfiletime) |
+|`GetThreadPriority`            |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-getthreadpriority) |
+|`GetTickCount64`               |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/sysinfoapi/nf-sysinfoapi-gettickcount64) |
+|`HeapAlloc`                    |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/heapapi/nf-heapapi-heapalloc) |
+|`HeapFree`                     |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/heapapi/nf-heapapi-heapfree) |
+|`HeapReAlloc`                  |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/heapapi/nf-heapapi-heaprealloc) |
+|`HeapSetInformation`           |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/heapapi/nf-heapapi-heapsetinformation) |
+|`HeapSize`                     |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/heapapi/nf-heapapi-heapsize) |
+|`NtClose`                      |NTDLL           |[Windows Driver API](https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/nf-wdm-zwclose) |
+|`NtCreateSection`              |NTDLL           |[Windows Driver API](https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/nf-wdm-zwcreatesection) |
+|`NtDelayExecution`             |NTDLL           |Undocumented |
+|`NtDuplicateObject`            |NTDLL           |[Windows Driver API](https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/ntifs/nf-ntifs-zwduplicateobject) |
+|`NtMapViewOfSection`           |NTDLL           |[Windows Driver API](https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/nf-wdm-zwmapviewofsection) |
+|`NtRaiseHardError`             |NTDLL           |Undocumented |
+|`NtReleaseKeyedEvent`          |NTDLL           |Undocumented |
+|`NtUnmapViewOfSection`         |NTDLL           |[Windows Driver API](https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/nf-wdm-zwunmapviewofsection) |
+|`NtWaitForKeyedEvent`          |NTDLL           |Undocumented |
+|`NtWaitForSingleObject`        |NTDLL           |[Windows Driver API](https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/ntifs/nf-ntifs-zwwaitforsingleobject) |
+|`QueryPerformanceCounter`      |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/profileapi/nf-profileapi-queryperformancecounter) |
+|`QueryPerformanceFrequency`    |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/profileapi/nf-profileapi-queryperformancefrequency) |
+|`QueryUnbiasedInterruptTime`   |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/realtimeapiset/nf-realtimeapiset-queryunbiasedinterrupttime) |
+|`RtlCompareMemory`             |KERNEL32, NTDLL |[Windows Driver API](https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/nf-wdm-rtlcomparememory) |
+|`RtlDllShutdownInProgress`     |NTDLL           |[Windows API](https://learn.microsoft.com/en-us/windows/win32/devnotes/rtldllshutdowninprogress)|
+|`RtlFillMemory`                |NTDLL           |[Windows Driver API](https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/nf-wdm-rtlfillmemory) |
+|`RtlMoveMemory`                |NTDLL           |[Windows Driver API](https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/nf-wdm-rtlmovememory) |
+|`RtlZeroMemory`                |NTDLL           |[Windows Driver API](https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/nf-wdm-rtlzeromemory) |
+|`SetConsoleCtrlHandler`        |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/console/setconsolectrlhandler) |
+|`SetLastError`                 |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/errhandlingapi/nf-errhandlingapi-setlasterror) |
+|`SetThreadPriority`            |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-setthreadpriority) |
+|`SwitchToThread`               |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-switchtothread) |
+|`TerminateProcess`             |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-terminateprocess) |
+|`TlsAlloc`                     |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-tlsalloc) |
+|`TlsGetValue`                  |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-tlsgetvalue) |
+|`TlsGetValue2`                 |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-tlsgetvalue2) |
+|`TlsSetValue`                  |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-tlssetvalue) |
+|`VirtualProtect`               |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-virtualprotect) |

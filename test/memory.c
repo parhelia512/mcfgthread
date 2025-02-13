@@ -1,39 +1,46 @@
 /* This file is part of MCF Gthread.
- * See LICENSE.TXT for licensing information.
- * Copyleft 2022, LH_Mouse. All wrongs reserved.  */
+ * Copyright (C) 2022-2025 LH_Mouse. All wrongs reserved.
+ *
+ * MCF Gthread is free software. Licensing information is included in
+ * LICENSE.TXT as a whole. The GCC Runtime Library Exception applies
+ * to this file.  */
 
-#include "../mcfgthread/xglobals.i"
+#define WIN32_LEAN_AND_MEAN  1
+#include <windows.h>
+#include "../mcfgthread/xglobals.h"
 #include <assert.h>
 #include <stdio.h>
-#include <string.h>
 
 static char comp[100];
 static char data[100];
 
-__MCF_WINAPI(HMODULE) LoadLibraryW(LPCWSTR);
-__MCF_WINAPI(BOOLEAN) SystemFunction036(PVOID, ULONG);
-#define RtlGenRandom  SystemFunction036
-
 int
 main(void)
   {
-    HMODULE msvcrt = LoadLibraryW(L"msvcrt.dll");
-    assert(msvcrt);
+    HMODULE bcrypt = LoadLibraryW(L"bcrypt.dll");
+    assert(bcrypt);
+
+    typedef NTSTATUS __stdcall BCryptGenRandom_t(HANDLE, void*, ULONG, ULONG);
+    BCryptGenRandom_t* pBCryptGenRandom = __MCF_CAST_PTR(BCryptGenRandom_t, GetProcAddress(bcrypt, "BCryptGenRandom"));
+    assert(pBCryptGenRandom);
+
+    HMODULE ntdll = LoadLibraryW(L"ntdll.dll");
+    assert(ntdll);
 
     typedef void __cdecl memmove_t(void*, const void*, size_t);
-    memmove_t* pmemmove = (memmove_t*)(intptr_t) GetProcAddress(msvcrt, "memmove");
+    memmove_t* pmemmove = __MCF_CAST_PTR(memmove_t, GetProcAddress(ntdll, "memmove"));
     assert(pmemmove);
 
     typedef void __cdecl memset_t(void*, int, size_t);
-    memset_t* pmemset = (memset_t*)(intptr_t) GetProcAddress(msvcrt, "memset");
+    memset_t* pmemset = __MCF_CAST_PTR(memset_t, GetProcAddress(ntdll, "memset"));
     assert(pmemset);
 
     typedef int __cdecl memcmp_t(const void*, const void*, size_t);
-    memcmp_t* pmemcmp = (memcmp_t*)(intptr_t) GetProcAddress(msvcrt, "memcmp");
+    memcmp_t* pmemcmp = __MCF_CAST_PTR(memcmp_t, GetProcAddress(ntdll, "memcmp"));
     assert(pmemcmp);
 
     // __MCF_mfill
-    SystemFunction036(comp, sizeof(comp));
+    pBCryptGenRandom(NULL, comp, sizeof(comp), 2);
     pmemmove(data, comp, sizeof(comp));
 
     pmemset(comp + 20, 'b', 30);
@@ -46,9 +53,11 @@ main(void)
 
     assert(pmemcmp(comp, data, sizeof(comp)) == 0);
     assert(memcmp(comp, data, sizeof(comp)) == 0);
+    assert(__MCF_mcompare(comp, data, sizeof(comp)) == 0);
+    assert(__MCF_mequal(comp, data, sizeof(comp)) == true);
 
     // __MCF_mzero
-    SystemFunction036(comp, sizeof(comp));
+    pBCryptGenRandom(NULL, comp, sizeof(comp), 2);
     pmemmove(data, comp, sizeof(comp));
 
     pmemset(comp + 20, 0, 30);
@@ -61,9 +70,11 @@ main(void)
 
     assert(pmemcmp(comp, data, sizeof(comp)) == 0);
     assert(memcmp(comp, data, sizeof(comp)) == 0);
+    assert(__MCF_mcompare(comp, data, sizeof(comp)) == 0);
+    assert(__MCF_mequal(comp, data, sizeof(comp)) == true);
 
     // __MCF_mcopy
-    SystemFunction036(comp, sizeof(comp));
+    pBCryptGenRandom(NULL, comp, sizeof(comp), 2);
     pmemmove(data, comp, sizeof(comp));
 
     pmemmove(comp + 10, comp + 20, 40);
@@ -72,9 +83,11 @@ main(void)
 
     assert(pmemcmp(comp, data, sizeof(comp)) == 0);
     assert(memcmp(comp, data, sizeof(comp)) == 0);
+    assert(__MCF_mcompare(comp, data, sizeof(comp)) == 0);
+    assert(__MCF_mequal(comp, data, sizeof(comp)) == true);
 
     // __MCF_mcopy_backward
-    SystemFunction036(comp, sizeof(comp));
+    pBCryptGenRandom(NULL, comp, sizeof(comp), 2);
     pmemmove(data, comp, sizeof(comp));
 
     pmemmove(comp + 20, comp + 10, 40);
@@ -83,39 +96,51 @@ main(void)
 
     assert(pmemcmp(comp, data, sizeof(comp)) == 0);
     assert(memcmp(comp, data, sizeof(comp)) == 0);
+    assert(__MCF_mcompare(comp, data, sizeof(comp)) == 0);
+    assert(__MCF_mequal(comp, data, sizeof(comp)) == true);
 
-    // __MCF_mcomp (equal)
-    SystemFunction036(comp, sizeof(comp));
+    // __MCF_mcompare (equal)
+    pBCryptGenRandom(NULL, comp, sizeof(comp), 2);
     pmemmove(data, comp, sizeof(comp));
 
     assert(pmemcmp(comp, data, sizeof(comp)) == 0);
     assert(memcmp(comp, data, sizeof(comp)) == 0);
+    assert(__MCF_mcompare(comp, data, sizeof(comp)) == 0);
+    assert(__MCF_mequal(comp, data, sizeof(comp)) == true);
 
-    // __MCF_mcomp (less 2)
+    // __MCF_mcompare (less 2)
     comp[72] = '1';
     data[72] = '2';
 
     assert(pmemcmp(comp, data, sizeof(comp)) < 0);
     assert(memcmp(comp, data, sizeof(comp)) < 0);
+    assert(__MCF_mcompare(comp, data, sizeof(comp)) < 0);
+    assert(__MCF_mequal(comp, data, sizeof(comp)) == false);
 
-    // __MCF_mcomp (greater 1)
+    // __MCF_mcompare (greater 1)
     comp[71] = '\x80';
     data[71] = '\x7F';
 
     assert(pmemcmp(comp, data, sizeof(comp)) > 0);
     assert(memcmp(comp, data, sizeof(comp)) > 0);
+    assert(__MCF_mcompare(comp, data, sizeof(comp)) > 0);
+    assert(__MCF_mequal(comp, data, sizeof(comp)) == false);
 
-    // __MCF_mcomp (greater 2)
+    // __MCF_mcompare (greater 2)
     comp[45] = '2';
     data[45] = '1';
 
     assert(pmemcmp(comp, data, sizeof(comp)) > 0);
     assert(memcmp(comp, data, sizeof(comp)) > 0);
+    assert(__MCF_mcompare(comp, data, sizeof(comp)) > 0);
+    assert(__MCF_mequal(comp, data, sizeof(comp)) == false);
 
-    // __MCF_mcomp (less 1)
+    // __MCF_mcompare (less 1)
     comp[44] = '\x7F';
     data[44] = '\x80';
 
     assert(pmemcmp(comp, data, sizeof(comp)) < 0);
     assert(memcmp(comp, data, sizeof(comp)) < 0);
+    assert(__MCF_mcompare(comp, data, sizeof(comp)) < 0);
+    assert(__MCF_mequal(comp, data, sizeof(comp)) == false);
   }

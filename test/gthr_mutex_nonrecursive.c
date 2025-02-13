@@ -1,6 +1,9 @@
 /* This file is part of MCF Gthread.
- * See LICENSE.TXT for licensing information.
- * Copyleft 2022, LH_Mouse. All wrongs reserved.  */
+ * Copyright (C) 2022-2025 LH_Mouse. All wrongs reserved.
+ *
+ * MCF Gthread is free software. Licensing information is included in
+ * LICENSE.TXT as a whole. The GCC Runtime Library Exception applies
+ * to this file.  */
 
 #include "../mcfgthread/gthr.h"
 #include "../mcfgthread/clock.h"
@@ -18,7 +21,7 @@ main(void)
     assert(r == 0);
 
     r = __gthread_mutex_trylock(&mutex);
-    assert(r == -1);
+    assert(r == EBUSY);
 
     r = __gthread_mutex_unlock(&mutex);
     assert(r == 0);

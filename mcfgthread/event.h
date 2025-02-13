@@ -1,6 +1,9 @@
 /* This file is part of MCF Gthread.
- * See LICENSE.TXT for licensing information.
- * Copyleft 2022 - 2024, LH_Mouse. All wrongs reserved.  */
+ * Copyright (C) 2022-2025 LH_Mouse. All wrongs reserved.
+ *
+ * MCF Gthread is free software. Licensing information is included in
+ * LICENSE.TXT as a whole. The GCC Runtime Library Exception applies
+ * to this file.  */
 
 #ifndef __MCFGTHREAD_EVENT_
 #define __MCFGTHREAD_EVENT_
@@ -8,7 +11,7 @@
 #include "fwd.h"
 #include "atomic.h"
 
-__MCF_C_DECLARATIONS_BEGIN
+__MCF_CXX(extern "C" {)
 #ifndef __MCF_EVENT_IMPORT
 #  define __MCF_EVENT_IMPORT
 #  define __MCF_EVENT_INLINE  __MCF_GNU_INLINE
@@ -18,11 +21,9 @@ __MCF_C_DECLARATIONS_BEGIN
  * This takes up the same storage as a pointer.  */
 struct __MCF_event
   {
-    uintptr_t __value : 8;
-    uintptr_t __reserved_bit : 1;
-
-#define __MCF_EVENT_NSLEEP_M   (__MCF_UPTR_MAX >> 9)
-    uintptr_t __nsleep : __MCF_PTR_BITS - 9;  /* number of sleeping threads  */
+    __MCF_EX uintptr_t __value : 8;
+    __MCF_EX uintptr_t __reserved_bit : 1;
+    __MCF_EX uintptr_t __nsleep : __MCF_PTR_BITS - 9;  /* number of sleeping threads  */
   };
 
 /* This is the maximum value of an event. This is a value of type `int` due
@@ -39,19 +40,19 @@ struct __MCF_event
     }
 
 /* Initializes an event dynamically. The argument is the initial value of
- * the event, which shall not be negative.
- * Static ones should be initialized with `__MCF_EVENT_INIT(__value_init)`.
+ * the event, which shall not be negative. Static ones should be initialized
+ * with `__MCF_EVENT_INIT(__value_init)`.
  *
  * Returns 0 if the initialization is successful, or -1 in case of invalid
  * arguments.  */
 __MCF_EVENT_INLINE
 int
-_MCF_event_init(_MCF_event* __eventp, int __value_init) __MCF_NOEXCEPT;
+_MCF_event_init(_MCF_event* __eventp, int __value_init) __MCF_noexcept;
 
 /* Gets the current value of an event.  */
 __MCF_EVENT_INLINE
 uint8_t
-_MCF_event_get(const _MCF_event* __eventp) __MCF_NOEXCEPT;
+_MCF_event_get(const _MCF_event* __eventp) __MCF_noexcept;
 
 /* Waits for an event until it does NOT contain an undesired value.
  *
@@ -66,14 +67,14 @@ _MCF_event_get(const _MCF_event* __eventp) __MCF_NOEXCEPT;
  * immediately.
  *
  * Returns a desired value which never equals the lowest byte of `__undesired`,
- * or -1 if the operation has timed out, or -2 in case of invalid arguments.  */
+ * or -1 if the operation has timed out.  */
 __MCF_EVENT_IMPORT
 int
-_MCF_event_await_change_slow(_MCF_event* __eventp, int __undesired, const int64_t* __timeout_opt) __MCF_NOEXCEPT;
+_MCF_event_await_change_slow(_MCF_event* __eventp, int __undesired, const int64_t* __timeout_opt) __MCF_noexcept;
 
 __MCF_EVENT_INLINE
 int
-_MCF_event_await_change(_MCF_event* __eventp, int __undesired, const int64_t* __timeout_opt) __MCF_NOEXCEPT;
+_MCF_event_await_change(_MCF_event* __eventp, int __undesired, const int64_t* __timeout_opt) __MCF_noexcept;
 
 /* Sets the value of an event. If the value has been changed, other threads are
  * woken up so they can check it.
@@ -82,11 +83,11 @@ _MCF_event_await_change(_MCF_event* __eventp, int __undesired, const int64_t* __
  * invalid arguments.  */
 __MCF_EVENT_IMPORT
 int
-_MCF_event_set_slow(_MCF_event* __eventp, int __value) __MCF_NOEXCEPT;
+_MCF_event_set_slow(_MCF_event* __eventp, int __value) __MCF_noexcept;
 
 __MCF_EVENT_INLINE
 int
-_MCF_event_set(_MCF_event* __eventp, int __value) __MCF_NOEXCEPT;
+_MCF_event_set(_MCF_event* __eventp, int __value) __MCF_noexcept;
 
 /* Define inline functions after all declarations.
  * We would like to keep them away from declarations for conciseness, which also
@@ -95,63 +96,54 @@ _MCF_event_set(_MCF_event* __eventp, int __value) __MCF_NOEXCEPT;
  * this file.  */
 __MCF_EVENT_INLINE
 int
-_MCF_event_init(_MCF_event* __eventp, int __value_init) __MCF_NOEXCEPT
+_MCF_event_init(_MCF_event* __eventp, int __value_init) __MCF_noexcept
   {
+    _MCF_event __temp = { 0, 0, 0 };
+
     if((__value_init < 0) || (__value_init > __MCF_EVENT_VALUE_MAX))
       return -1;
 
-    _MCF_event __temp = { (uint8_t) __value_init, 0, 0 };
+    __temp.__value = (uint8_t) __value_init;
     _MCF_atomic_store_pptr_rel(__eventp, &__temp);
     return 0;
   }
 
 __MCF_EVENT_INLINE
 uint8_t
-_MCF_event_get(const _MCF_event* __eventp) __MCF_NOEXCEPT
+_MCF_event_get(const _MCF_event* __eventp) __MCF_noexcept
   {
     _MCF_event __temp;
     _MCF_atomic_load_pptr_rlx(&__temp, __eventp);
-    return (uint8_t) __temp.__value;
+    return __temp.__value;
   }
 
 __MCF_EVENT_INLINE
 int
-_MCF_event_await_change(_MCF_event* __eventp, int __undesired, const int64_t* __timeout_opt) __MCF_NOEXCEPT
+_MCF_event_await_change(_MCF_event* __eventp, int __undesired, const int64_t* __timeout_opt) __MCF_noexcept
   {
-    if((__undesired < 0) || (__undesired > __MCF_EVENT_VALUE_MAX))
-      return -2;
-
+#if __MCF_EXPAND_INLINE_DEFINITIONS
     _MCF_event __old;
     _MCF_atomic_load_pptr_acq(&__old, __eventp);
-
-    /* Check whether the event does not contain the undesired value. If so,
-     * don't block at all.  */
-    if(__old.__value != (uint8_t) __undesired)
-      return (uint8_t) __old.__value;
-
-    if(__timeout_opt && (*__timeout_opt == 0))
+    if(__old.__value != __undesired)
+      return __old.__value;
+    else if(__timeout_opt && (*__timeout_opt == 0))
       return -1;
-
+#endif
     return _MCF_event_await_change_slow(__eventp, __undesired, __timeout_opt);
   }
 
 __MCF_EVENT_INLINE
 int
-_MCF_event_set(_MCF_event* __eventp, int __value) __MCF_NOEXCEPT
+_MCF_event_set(_MCF_event* __eventp, int __value) __MCF_noexcept
   {
-    if((__value < 0) || (__value > __MCF_EVENT_VALUE_MAX))
-      return -1;
-
+#if __MCF_EXPAND_INLINE_DEFINITIONS
     _MCF_event __old;
     _MCF_atomic_load_pptr_acq(&__old, __eventp);
-
-    /* Check whether the event already contains the value. If so, don't do
-     * anything, in order to prevent thundering herds.  */
-    if(__old.__value == (uint8_t) __value)
+    if(__old.__value == __value)
       return 0;
-
+#endif
     return _MCF_event_set_slow(__eventp, __value);
   }
 
-__MCF_C_DECLARATIONS_END
+__MCF_CXX(})  /* extern "C"  */
 #endif  /* __MCFGTHREAD_EVENT_  */

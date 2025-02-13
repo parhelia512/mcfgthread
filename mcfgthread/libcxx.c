@@ -1,10 +1,14 @@
 /* This file is part of MCF Gthread.
- * See LICENSE.TXT for licensing information.
- * Copyleft 2022 - 2024, LH_Mouse. All wrongs reserved.  */
+ * Copyright (C) 2022-2025 LH_Mouse. All wrongs reserved.
+ *
+ * MCF Gthread is free software. Licensing information is included in
+ * LICENSE.TXT as a whole. The GCC Runtime Library Exception applies
+ * to this file.  */
 
-#include "precompiled.h"
+#include "xprecompiled.h"
 #define __MCF_LIBCXX_IMPORT  __MCF_DLLEXPORT
 #define __MCF_LIBCXX_INLINE  __MCF_DLLEXPORT
+#define __MCF_LIBCXX_NO_ALIASES  1
 #include "libcxx.h"
 
 __MCF_DLLEXPORT

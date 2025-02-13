@@ -1,6 +1,9 @@
 /* This file is part of MCF Gthread.
- * See LICENSE.TXT for licensing information.
- * Copyleft 2022, LH_Mouse. All wrongs reserved.  */
+ * Copyright (C) 2022-2025 LH_Mouse. All wrongs reserved.
+ *
+ * MCF Gthread is free software. Licensing information is included in
+ * LICENSE.TXT as a whole. The GCC Runtime Library Exception applies
+ * to this file.  */
 
 #include "../mcfgthread/c11.h"
 #include "../mcfgthread/sem.h"
@@ -23,7 +26,7 @@ thread_proc(void* param)
     for(;;) {
       int r = mtx_trylock(&mutex);
       if(r == thrd_success) {
-        printf("thread %d got %d\n", (int) _MCF_thread_self_tid(), r);
+        fprintf(stderr, "thread %d got %d\n", (int) _MCF_thread_self_tid(), r);
 
         r = mtx_lock(&mutex);
         assert(r == 0);
@@ -48,7 +51,7 @@ thread_proc(void* param)
         assert(0);
     }
 
-    printf("thread %d quitting\n", (int) _MCF_thread_self_tid());
+    fprintf(stderr, "thread %d quitting\n", (int) _MCF_thread_self_tid());
     return 0;
   }
 
@@ -64,12 +67,12 @@ main(void)
       assert(threads[k]);
     }
 
-    printf("main waiting\n");
+    fprintf(stderr, "main waiting\n");
     _MCF_sem_signal_some(&start, NTHREADS);
     for(size_t k = 0;  k < NTHREADS;  ++k) {
       int r = thrd_join(threads[k], __MCF_nullptr);
       assert(r == thrd_success);
-      printf("main wait finished: %d\n", (int)k);
+      fprintf(stderr, "main wait finished: %d\n", (int)k);
     }
 
     assert(resource == NTHREADS);

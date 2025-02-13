@@ -1,6 +1,9 @@
 /* This file is part of MCF Gthread.
- * See LICENSE.TXT for licensing information.
- * Copyleft 2022, LH_Mouse. All wrongs reserved.  */
+ * Copyright (C) 2022-2025 LH_Mouse. All wrongs reserved.
+ *
+ * MCF Gthread is free software. Licensing information is included in
+ * LICENSE.TXT as a whole. The GCC Runtime Library Exception applies
+ * to this file.  */
 
 #include "../mcfgthread/cxx11.hpp"
 #include "../mcfgthread/sem.h"
@@ -20,8 +23,8 @@ static
 void
 tls_destructor(int* ptr)
   {
-    ::printf("thread %d tls_destructor\n", (int) ::_MCF_thread_self_tid());
-    __atomic_fetch_add(ptr, 1, __ATOMIC_RELAXED);
+    ::fprintf(stderr, "thread %d tls_destructor\n", (int) ::_MCF_thread_self_tid());
+    _MCF_atomic_xadd_32_rlx(ptr, 1);
   }
 
 static NS::thread_specific_ptr<int> tss_ptr(tls_destructor);
@@ -40,7 +43,7 @@ thread_proc()
     // Add a resource.
     tss_ptr.reset(&resource);
 
-    ::printf("thread %d quitting\n", (int) ::_MCF_thread_self_tid());
+    ::fprintf(stderr, "thread %d quitting\n", (int) ::_MCF_thread_self_tid());
   }
 #endif
 
@@ -53,7 +56,7 @@ main(void)
     for(auto& thr : threads)
       thr = NS::thread(thread_proc);
 
-    ::printf("main waiting\n");
+    ::fprintf(stderr, "main waiting\n");
     ::_MCF_sem_signal_some(&start, NTHREADS);
 
     for(auto& thr : threads)

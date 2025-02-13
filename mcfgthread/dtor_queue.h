@@ -1,13 +1,16 @@
 /* This file is part of MCF Gthread.
- * See LICENSE.TXT for licensing information.
- * Copyleft 2022 - 2024, LH_Mouse. All wrongs reserved.  */
+ * Copyright (C) 2022-2025 LH_Mouse. All wrongs reserved.
+ *
+ * MCF Gthread is free software. Licensing information is included in
+ * LICENSE.TXT as a whole. The GCC Runtime Library Exception applies
+ * to this file.  */
 
 #ifndef __MCFGTHREAD_DTOR_QUEUE_
 #define __MCFGTHREAD_DTOR_QUEUE_
 
 #include "fwd.h"
 
-__MCF_C_DECLARATIONS_BEGIN
+__MCF_CXX(extern "C" {)
 #ifndef __MCF_DTOR_QUEUE_IMPORT
 #  define __MCF_DTOR_QUEUE_IMPORT
 #  define __MCF_DTOR_QUEUE_INLINE  __MCF_GNU_INLINE
@@ -16,7 +19,7 @@ __MCF_C_DECLARATIONS_BEGIN
 /* Define the cxa_atexit queue structure.  */
 struct __MCF_dtor_element
   {
-    __MCF_cxa_dtor_union __dtor;
+    __MCF_cxa_dtor_cdecl* __dtor;
     void* __this;
     void* __dso;
   };
@@ -37,7 +40,7 @@ struct __MCF_dtor_queue
  * Returns 0 if an element has been pushed, or -1 if out of memory.  */
 __MCF_DTOR_QUEUE_IMPORT
 int
-__MCF_dtor_queue_push(__MCF_dtor_queue* __queue, const __MCF_dtor_element* __elem) __MCF_NOEXCEPT;
+__MCF_dtor_queue_push(__MCF_dtor_queue* __queue, const __MCF_dtor_element* __elem) __MCF_noexcept;
 
 /* Pops the newest element which matches `__dso` from the queue. If `__dso` is
  * null, then any element is considered a match. This function is used to
@@ -47,7 +50,7 @@ __MCF_dtor_queue_push(__MCF_dtor_queue* __queue, const __MCF_dtor_element* __ele
  * Returns 0 if an element has been popped, or -1 if the queue is empty.  */
 __MCF_DTOR_QUEUE_IMPORT
 int
-__MCF_dtor_queue_pop(__MCF_dtor_element* __elem, __MCF_dtor_queue* __queue, void* __dso) __MCF_NOEXCEPT;
+__MCF_dtor_queue_pop(__MCF_dtor_element* __elem, __MCF_dtor_queue* __queue, void* __dso) __MCF_noexcept;
 
 /* Removes all elements that match `__dso` from the queue. If `__dso` is null,
  * then any element is considered a match. Refer to the Itanium C++ ABI for
@@ -56,7 +59,7 @@ __MCF_dtor_queue_pop(__MCF_dtor_element* __elem, __MCF_dtor_queue* __queue, void
  * Returns the number of elements that have been removed.  */
 __MCF_DTOR_QUEUE_IMPORT
 size_t
-__MCF_dtor_queue_remove(__MCF_dtor_queue* __queue, void* __dso) __MCF_NOEXCEPT;
+__MCF_dtor_queue_remove(__MCF_dtor_queue* __queue, void* __dso) __MCF_noexcept;
 
-__MCF_C_DECLARATIONS_END
+__MCF_CXX(})  /* extern "C"  */
 #endif  /* __MCFGTHREAD_DTOR_QUEUE_  */

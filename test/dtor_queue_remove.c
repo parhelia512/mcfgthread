@@ -1,6 +1,9 @@
 /* This file is part of MCF Gthread.
- * See LICENSE.TXT for licensing information.
- * Copyleft 2022, LH_Mouse. All wrongs reserved.  */
+ * Copyright (C) 2022-2025 LH_Mouse. All wrongs reserved.
+ *
+ * MCF Gthread is free software. Licensing information is included in
+ * LICENSE.TXT as a whole. The GCC Runtime Library Exception applies
+ * to this file.  */
 
 #include "../mcfgthread/dtor_queue.h"
 #include <assert.h>
@@ -20,7 +23,7 @@ main(void)
 
       r = __MCF_dtor_queue_push(&queue, &elem);
       assert(r == 0);
-      printf("push: %td, size = %td\n", (intptr_t) elem.__this, (intptr_t) queue.__size);
+      fprintf(stderr, "push: %d, size = %d\n", (int)(intptr_t) elem.__this, (int)(intptr_t) queue.__size);
 
     }
 
@@ -36,7 +39,7 @@ main(void)
       for(intptr_t k = 99;  k >= 0;  --k) {
         r = __MCF_dtor_queue_pop(&elem, &queue, (void*) m);
         assert(r == 0);
-        printf("pop: %td, size = %td\n", (intptr_t) elem.__this, (intptr_t) queue.__size);
+        fprintf(stderr, "pop: %d, size = %d\n", (int)(intptr_t) elem.__this, (int)(intptr_t) queue.__size);
 
         assert(elem.__this == (void*) (k * 10 + m));
         assert(elem.__dso == (void*) m);

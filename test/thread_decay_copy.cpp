@@ -1,6 +1,9 @@
 /* This file is part of MCF Gthread.
- * See LICENSE.TXT for licensing information.
- * Copyleft 2022, LH_Mouse. All wrongs reserved.  */
+ * Copyright (C) 2022-2025 LH_Mouse. All wrongs reserved.
+ *
+ * MCF Gthread is free software. Licensing information is included in
+ * LICENSE.TXT as a whole. The GCC Runtime Library Exception applies
+ * to this file.  */
 
 #include "../mcfgthread/cxx11.hpp"
 #include "../mcfgthread/exit.h"
@@ -26,7 +29,7 @@ struct probe
 
     probe(const probe& r)
       {
-        ::printf("copy ctor invoked; aborting: %d\n", r.value);
+        ::fprintf(stderr, "copy ctor invoked; aborting: %d\n", r.value);
         ::abort();
       }
 
@@ -38,14 +41,14 @@ struct probe
 
     probe& operator=(const probe& r)
       {
-        ::printf("copy assignment invoked; aborting: %d\n", r.value);
+        ::fprintf(stderr, "copy assignment invoked; aborting: %d\n", r.value);
         ::abort();
       }
 
     probe& operator=(probe&& r) noexcept
       {
         if(this == &r) {
-          ::printf("move assignment to self invoked; aborting: %d\n", r.value);
+          ::fprintf(stderr, "move assignment to self invoked; aborting: %d\n", r.value);
           ::abort();
         }
         else {
@@ -58,7 +61,7 @@ struct probe
     void
     operator()(probe&& x, probe&& y, probe&& z)
       {
-        ::printf("x, y, z = %d, %d, %d\n", x.value, y.value, z.value);
+        ::fprintf(stderr, "x, y, z = %d, %d, %d\n", x.value, y.value, z.value);
         assert(x.value == 1);
         assert(y.value == 2);
         assert(z.value == 3);

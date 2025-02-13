@@ -1,6 +1,9 @@
 /* This file is part of MCF Gthread.
- * See LICENSE.TXT for licensing information.
- * Copyleft 2022, LH_Mouse. All wrongs reserved.  */
+ * Copyright (C) 2022-2025 LH_Mouse. All wrongs reserved.
+ *
+ * MCF Gthread is free software. Licensing information is included in
+ * LICENSE.TXT as a whole. The GCC Runtime Library Exception applies
+ * to this file.  */
 
 #include "../mcfgthread/gthr.h"
 #include "../mcfgthread/sem.h"
@@ -33,10 +36,10 @@ thread_proc(void* param)
     _MCF_sem_wait(&start, __MCF_nullptr);
 
     int err = __gthread_once(&once, once_do_it);
-    printf("thread %d got %d\n", (int) _MCF_thread_self_tid(), err);
+    fprintf(stderr, "thread %d got %d\n", (int) _MCF_thread_self_tid(), err);
     assert(err == 0);
 
-    printf("thread %d quitting\n", (int) _MCF_thread_self_tid());
+    fprintf(stderr, "thread %d quitting\n", (int) _MCF_thread_self_tid());
     return __MCF_nullptr;
   }
 
@@ -49,12 +52,12 @@ main(void)
       assert(threads[k]);
     }
 
-    printf("main waiting\n");
+    fprintf(stderr, "main waiting\n");
     _MCF_sem_signal_some(&start, NTHREADS);
     for(size_t k = 0;  k < NTHREADS;  ++k) {
       int r = __gthread_join(threads[k], __MCF_nullptr);
       assert(r == 0);
-      printf("main wait finished: %d\n", (int)k);
+      fprintf(stderr, "main wait finished: %d\n", (int)k);
     }
 
     assert(resource == 1);

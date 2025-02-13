@@ -1,6 +1,9 @@
 /* This file is part of MCF Gthread.
- * See LICENSE.TXT for licensing information.
- * Copyleft 2022, LH_Mouse. All wrongs reserved.  */
+ * Copyright (C) 2022-2025 LH_Mouse. All wrongs reserved.
+ *
+ * MCF Gthread is free software. Licensing information is included in
+ * LICENSE.TXT as a whole. The GCC Runtime Library Exception applies
+ * to this file.  */
 
 #include "../mcfgthread/gthr.h"
 #include "../mcfgthread/clock.h"
@@ -15,6 +18,7 @@ int
 main(void)
   {
     double now, delta;
+    time_t sleep_until;
     __gthread_time_t timeout;
     int r;
 
@@ -23,20 +27,20 @@ main(void)
     r = __gthread_mutex_trylock(&mutex);
     assert(r == 0);
 
-    /* Round the time up.  */
-    int64_t sleep_until = (int64_t) time(__MCF_nullptr) * 1000 + 2000;
-    _MCF_sleep(&sleep_until);
-
-    now = _MCF_perf_counter();
-    timeout.tv_sec = time(__MCF_nullptr) + 1;
-    timeout.tv_nsec = 100000000;
+    sleep_until = time(__MCF_nullptr) + 2;
+    _MCF_sleep(&(int64_t) { sleep_until * 1000LL - 20 });
+    do { now = _MCF_perf_counter();
+         timeout.tv_sec = time(__MCF_nullptr);
+    } while(timeout.tv_sec < sleep_until);
+    timeout.tv_sec += 1;
+    timeout.tv_nsec = 115999999;  // relaxed
     r = __gthread_cond_timedwait(&cond, &mutex, &timeout);
-    assert(r == -1);
+    assert(r == ETIMEDOUT);
     delta = _MCF_perf_counter() - now;
-    printf("delta = %.6f\n", delta);
-    assert(delta >= 1100 - 40);
+    fprintf(stderr, "delta = %.6f\n", delta);
+    assert(delta >= 1100);
     assert(delta <= 1200);
 
     r = __gthread_mutex_trylock(&mutex);
-    assert(r == -1);
+    assert(r == EBUSY);
   }

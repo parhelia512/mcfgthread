@@ -1,6 +1,9 @@
 /* This file is part of MCF Gthread.
- * See LICENSE.TXT for licensing information.
- * Copyleft 2022, LH_Mouse. All wrongs reserved.  */
+ * Copyright (C) 2022-2025 LH_Mouse. All wrongs reserved.
+ *
+ * MCF Gthread is free software. Licensing information is included in
+ * LICENSE.TXT as a whole. The GCC Runtime Library Exception applies
+ * to this file.  */
 
 #include "../mcfgthread/cxx11.hpp"
 #include "../mcfgthread/clock.h"
@@ -24,9 +27,9 @@ main(void)
     ::_MCF_thread_set_priority(nullptr, ::_MCF_thread_priority_above_normal);
 
     now = ::_MCF_perf_counter();
-    NS::this_thread::sleep_for(NS::chrono::milliseconds(1100));
+    NS::this_thread::sleep_for(NS::chrono::milliseconds(1116));  // relaxed
     delta = ::_MCF_perf_counter() - now;
-    ::printf("delta = %.6f\n", delta);
-    assert(delta >= 1100 - 20);
+    ::fprintf(stderr, "delta = %.6f\n", delta);
+    assert(delta >= 1100);
     assert(delta <= 1200);
   }

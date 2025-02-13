@@ -1,6 +1,9 @@
 /* This file is part of MCF Gthread.
- * See LICENSE.TXT for licensing information.
- * Copyleft 2022 - 2024, LH_Mouse. All wrongs reserved.  */
+ * Copyright (C) 2022-2025 LH_Mouse. All wrongs reserved.
+ *
+ * MCF Gthread is free software. Licensing information is included in
+ * LICENSE.TXT as a whole. The GCC Runtime Library Exception applies
+ * to this file.  */
 
 #ifndef __MCFGTHREAD_CXX11_
 #define __MCFGTHREAD_CXX11_
@@ -9,13 +12,17 @@
 #include "gthr_aux.h"
 #include "cxa.h"
 #include "event.h"
+#include "shared_mutex.h"
 #include <chrono>  // duration, time_point
 #include <functional>  // mem_fn(), invoke()
 #include <system_error>  // system_error, errc, error_code
 #include <mutex>  // unique_lock, lock_guard
 #include <new>  // operator new()
+#include <iosfwd>  // basic_ostream
 #include <type_traits>  // many
-#include <iosfwd>
+#if __MCF_CXX14(1+)0
+#include <shared_mutex>  // shared_lock
+#endif
 
 namespace _MCF {
 
@@ -26,7 +33,10 @@ extern "C" void* __dso_handle;
 namespace chrono = ::std::chrono;
 using ::std::lock_guard;
 using ::std::unique_lock;
-#ifdef __cpp_lib_scoped_lock
+#if __MCF_CXX14(1+)0
+using ::std::shared_lock;
+#endif
+#ifdef __cpp_lib_scoped_lock  // C++17
 using ::std::scoped_lock;
 #endif
 using ::std::defer_lock_t;
@@ -41,6 +51,8 @@ using ::std::lock;
 struct once_flag;
 class mutex;
 using timed_mutex = mutex;
+class shared_mutex;  // C++17
+using shared_timed_mutex = shared_mutex;  // C++14
 class recursive_mutex;
 using recursive_timed_mutex = recursive_mutex;
 enum class cv_status { no_timeout, timeout };
@@ -53,18 +65,11 @@ class thread_specific_ptr;  // inspired by boost
 // Provide limited support for `-fno-exceptions`.
 #if defined __EXCEPTIONS || defined __cpp_exceptions
 
-#  define __MCF_TRY          try
-#  define __MCF_CATCH(...)   catch(__VA_ARGS__)
-#  define __MCF_THROW(...)   throw __VA_ARGS__
-
 #  define __MCF_THROW_SYSTEM_ERROR(_Code, _Msg)  \
-     throw ::std::system_error((int) (::std::errc::_Code), ::std::generic_category(), _Msg)
+     throw ::std::system_error(static_cast<int>(::std::errc::_Code),  \
+                               ::std::generic_category(), _Msg)
 
 #else  // __EXCEPTIONS
-
-#  define __MCF_TRY          if(true)
-#  define __MCF_CATCH(...)   else if(false)
-#  define __MCF_THROW(...)   ::std::terminate()
 
 #  define __MCF_THROW_SYSTEM_ERROR(_Code, _Msg)  \
      ::__MCF_runtime_failure(_Msg)
@@ -190,19 +195,6 @@ __wait_until(const chrono::time_point<_Clock, _Dur>& __abs_time, _Cond&& __cond,
     return __err;
   }
 
-// Registers a callback upon the current thread's exit.
-template<typename _Result, typename _Value>
-inline
-void
-__check_thread_atexit(_Result __target(_Value*), typename ::std::common_type<_Value*>::type __ptr)
-  {
-    static_assert(::std::is_scalar<_Result>::value || ::std::is_void<_Result>::value, "result not discardable");
-
-    int __err = ::__MCF_cxa_thread_atexit((__MCF_cxa_dtor_cdecl*)(intptr_t) __target, __ptr, &__dso_handle);
-    if(__err != 0)
-      __MCF_THROW_SYSTEM_ERROR(not_enough_memory, "__MCF_cxa_thread_atexit");
-  }
-
 // Create a thread. ISO C++ requires that arguments for the constructor of
 // `std::thread` be passed as decay-copied rvalues. This is the object that
 // saves copies of them and invokes the target function accordingly.
@@ -251,12 +243,11 @@ struct _Invoke_decay_copy<_Callable, _Mine, _Others...>
 // Reference implementation for [thread.once.onceflag]
 struct once_flag
   {
-    ::_MCF_once _M_once[1] = { };
+    ::_MCF_once _M_once[1];
 
+    constexpr once_flag() noexcept : _M_once() { }
     once_flag(const once_flag&) = delete;
     once_flag& operator=(const once_flag&) = delete;
-
-    constexpr once_flag() noexcept { }
   };
 
 // Reference implementation for [thread.once.callonce]
@@ -264,24 +255,25 @@ template<typename _Callable, typename... _Args>
 void
 call_once(once_flag& __flag, _Callable&& __callable, _Args&&... __args)
   {
+    struct _Once_sentry
+      {
+        static void __deferred_prototype(::_MCF_once*) noexcept;
+        decltype(__deferred_prototype)* __deferred_fn;
+        ::_MCF_once* __once;
+
+        ~_Once_sentry() noexcept
+          { (* this->__deferred_fn) (this->__once);  }
+      };
+
     int __err = ::_MCF_once_wait(__flag._M_once, nullptr);
     if(__err == 0)
       return;  // passive
 
+    // active
     __MCF_ASSERT(__err == 1);
-
-    __MCF_TRY {
-      // active
-      __MCF_VOID_INVOKE(::std::forward<_Callable>(__callable), ::std::forward<_Args>(__args)...);
-    }
-    __MCF_CATCH(...) {
-      // exceptional
-      ::_MCF_once_abort(__flag._M_once);
-      __MCF_THROW();
-    }
-
-    // returning
-    ::_MCF_once_release(__flag._M_once);
+    _Once_sentry __sentry = { ::_MCF_once_abort, __flag._M_once };
+    __MCF_VOID_INVOKE(::std::forward<_Callable>(__callable), ::std::forward<_Args>(__args)...);
+    __sentry.__deferred_fn = ::_MCF_once_release;
   }
 
 // Reference implementation for [thread.mutex.class] and
@@ -298,6 +290,8 @@ class mutex
     constexpr mutex() noexcept { }
 
     using native_handle_type = ::_MCF_mutex*;
+    using lock_guard_type = lock_guard<mutex>;  // extension
+    using unique_lock_type = unique_lock<mutex>;  // extension
 
     __MCF_CXX14(constexpr)
     native_handle_type
@@ -344,6 +338,108 @@ class mutex
       }
   };
 
+// Reference implementation for [thread.sharedmutex.class] and
+// [thread.sharedtimedmutex.class].
+class shared_mutex
+  {
+  private:
+    ::_MCF_shared_mutex _M_smtx[1] = { };
+
+    shared_mutex(const shared_mutex&) = delete;
+    shared_mutex& operator=(const shared_mutex&) = delete;
+
+  public:
+    constexpr shared_mutex() noexcept { }
+
+    using native_handle_type = ::_MCF_shared_mutex*;
+    using lock_guard_type = lock_guard<shared_mutex>;  // extension
+    using unique_lock_type = unique_lock<shared_mutex>;  // extension
+#if __MCF_CXX14(1+)0
+    using shared_lock_type = shared_lock<shared_mutex>;  // extension
+#endif
+
+    __MCF_CXX14(constexpr)
+    native_handle_type
+    native_handle() noexcept
+      {
+        return this->_M_smtx;
+      }
+
+    void
+    lock() noexcept  // strengthened
+      {
+        int __err = ::_MCF_shared_mutex_lock_exclusive(this->_M_smtx, nullptr);
+        __MCF_ASSERT(__err == 0);
+      }
+
+    bool
+    try_lock() noexcept  // strengthened
+      {
+        int64_t __timeout = 0;
+        int __err = ::_MCF_shared_mutex_lock_exclusive(this->_M_smtx, &__timeout);
+        return __err == 0;
+      }
+
+    template<typename _Clock, typename _Dur>
+    bool
+    try_lock_until(const chrono::time_point<_Clock, _Dur>& __abs_time)
+      {
+        int __err = _Noadl::__wait_until(__abs_time, ::_MCF_shared_mutex_lock_exclusive, this->_M_smtx);
+        return __err == 0;
+      }
+
+    template<typename _Rep, typename _Period>
+    bool
+    try_lock_for(const chrono::duration<_Rep, _Period>& __rel_time)
+      {
+        int __err = _Noadl::__wait_for(__rel_time, ::_MCF_shared_mutex_lock_exclusive, this->_M_smtx);
+        return __err == 0;
+      }
+
+    void
+    unlock() noexcept  // strengthened
+      {
+        ::_MCF_shared_mutex_unlock(this->_M_smtx);
+      }
+
+    void
+    lock_shared() noexcept  // strengthened
+      {
+        int __err = ::_MCF_shared_mutex_lock_shared(this->_M_smtx, nullptr);
+        __MCF_ASSERT(__err == 0);
+      }
+
+    bool
+    try_lock_shared() noexcept  // strengthened
+      {
+        int64_t __timeout = 0;
+        int __err = ::_MCF_shared_mutex_lock_shared(this->_M_smtx, &__timeout);
+        return __err == 0;
+      }
+
+    template<typename _Clock, typename _Dur>
+    bool
+    try_lock_shared_until(const chrono::time_point<_Clock, _Dur>& __abs_time)
+      {
+        int __err = _Noadl::__wait_until(__abs_time, ::_MCF_shared_mutex_lock_shared, this->_M_smtx);
+        return __err == 0;
+      }
+
+    template<typename _Rep, typename _Period>
+    bool
+    try_lock_shared_for(const chrono::duration<_Rep, _Period>& __rel_time)
+      {
+        int __err = _Noadl::__wait_for(__rel_time, ::_MCF_shared_mutex_lock_shared, this->_M_smtx);
+        return __err == 0;
+      }
+
+    void
+    unlock_shared() noexcept  // strengthened
+      {
+        ::_MCF_shared_mutex_unlock(this->_M_smtx);
+      }
+  };
+
 // Reference implementation for [thread.timedmutex.recursive] and
 // [thread.timedmutex.recursive].
 class recursive_mutex
@@ -358,6 +454,8 @@ class recursive_mutex
     constexpr recursive_mutex() noexcept { }  // strengthened
 
     using native_handle_type = ::__MCF_gthr_rc_mutex*;
+    using lock_guard_type = lock_guard<recursive_mutex>;  // extension
+    using unique_lock_type = unique_lock<recursive_mutex>;  // extension
 
     __MCF_CXX14(constexpr)
     native_handle_type
@@ -425,6 +523,8 @@ class condition_variable
     constexpr condition_variable() noexcept { }  // strengthened
 
     using native_handle_type = ::_MCF_cond*;
+    using mutex_type = lock_guard<mutex>;  // extension
+    using unique_lock_type = unique_lock<mutex>;  // extension
 
     __MCF_CXX14(constexpr)
     native_handle_type
@@ -446,25 +546,22 @@ class condition_variable
       }
 
     void
-    wait(unique_lock<mutex>& __lock) noexcept  // strengthened
+    wait(unique_lock_type& __lock) noexcept  // strengthened
       {
         __MCF_ASSERT(__lock.owns_lock());  // must owning a mutex
         __MCF_ASSERT(__lock.mutex() != nullptr);
 
-        unique_lock<mutex> __temp_lock;
+        unique_lock_type __temp_lock;
         __temp_lock.swap(__lock);
-
-        int __err = ::_MCF_cond_wait(this->_M_cnd,
-             ::__MCF_gthr_mutex_unlock_callback, ::__MCF_gthr_mutex_relock_callback,
-             (intptr_t) __temp_lock.mutex()->native_handle(), nullptr);
-
+        ::_MCF_mutex* __mtx = __temp_lock.mutex()->native_handle();
+        int __err = ::__MCF_gthr_cond_mutex_wait(this->_M_cnd, __mtx, nullptr);
         __temp_lock.swap(__lock);
         __MCF_ASSERT(__err == 0);
       }
 
     template<typename _Predicate>
     void
-    wait(unique_lock<mutex>& __lock, _Predicate&& __pred)
+    wait(unique_lock_type& __lock, _Predicate&& __pred)
       {
         while(!(bool) __pred())
           this->wait(__lock);
@@ -472,25 +569,22 @@ class condition_variable
 
     template<typename _Clock, typename _Dur>
     cv_status
-    wait_until(unique_lock<mutex>& __lock, const chrono::time_point<_Clock, _Dur>& __abs_time)
+    wait_until(unique_lock_type& __lock, const chrono::time_point<_Clock, _Dur>& __abs_time)
       {
         __MCF_ASSERT(__lock.owns_lock());  // must owning a mutex
         __MCF_ASSERT(__lock.mutex() != nullptr);
 
-        unique_lock<mutex> __temp_lock;
+        unique_lock_type __temp_lock;
         __temp_lock.swap(__lock);
-
-        int __err = _Noadl::__wait_until(__abs_time, ::_MCF_cond_wait, this->_M_cnd,
-             ::__MCF_gthr_mutex_unlock_callback, ::__MCF_gthr_mutex_relock_callback,
-             (intptr_t) __temp_lock.mutex()->native_handle());
-
+        ::_MCF_mutex* __mtx = __temp_lock.mutex()->native_handle();
+        int __err = _Noadl::__wait_until(__abs_time, ::__MCF_gthr_cond_mutex_wait, this->_M_cnd, __mtx);
         __temp_lock.swap(__lock);
         return (__err == 0) ? cv_status::no_timeout : cv_status::timeout;
       }
 
     template<typename _Clock, typename _Dur, typename _Predicate>
     bool
-    wait_until(unique_lock<mutex>& __lock, const chrono::time_point<_Clock, _Dur>& __abs_time, _Predicate&& __pred)
+    wait_until(unique_lock_type& __lock, const chrono::time_point<_Clock, _Dur>& __abs_time, _Predicate&& __pred)
       {
         while(!(bool) __pred())
           if(this->wait_until(__lock, __abs_time) == cv_status::timeout)
@@ -500,25 +594,22 @@ class condition_variable
 
     template<typename _Rep, typename _Period>
     cv_status
-    wait_for(unique_lock<mutex>& __lock, const chrono::duration<_Rep, _Period>& __rel_time)
+    wait_for(unique_lock_type& __lock, const chrono::duration<_Rep, _Period>& __rel_time)
       {
         __MCF_ASSERT(__lock.owns_lock());  // must owning a mutex
         __MCF_ASSERT(__lock.mutex() != nullptr);
 
-        unique_lock<mutex> __temp_lock;
+        unique_lock_type __temp_lock;
         __temp_lock.swap(__lock);
-
-        int __err = _Noadl::__wait_for(__rel_time, ::_MCF_cond_wait, this->_M_cnd,
-             ::__MCF_gthr_mutex_unlock_callback, ::__MCF_gthr_mutex_relock_callback,
-             (intptr_t) __temp_lock.mutex()->native_handle());
-
+        ::_MCF_mutex* __mtx = __temp_lock.mutex()->native_handle();
+        int __err = _Noadl::__wait_for(__rel_time, ::__MCF_gthr_cond_mutex_wait, this->_M_cnd, __mtx);
         __temp_lock.swap(__lock);
         return (__err == 0) ? cv_status::no_timeout : cv_status::timeout;
       }
 
     template<typename _Rep, typename _Period, typename _Predicate>
     bool
-    wait_for(unique_lock<mutex>& __lock, const chrono::duration<_Rep, _Period>& __rel_time, _Predicate&& __pred)
+    wait_for(unique_lock_type& __lock, const chrono::duration<_Rep, _Period>& __rel_time, _Predicate&& __pred)
       {
         return this->wait_until(__lock, chrono::steady_clock::now() + __rel_time, __pred);
       }
@@ -532,22 +623,39 @@ notify_all_at_thread_exit(condition_variable& __cond, unique_lock<mutex> __lock)
     __MCF_ASSERT(__lock.owns_lock());  // must owning a mutex
     __MCF_ASSERT(__lock.mutex() != nullptr);
 
-    _Noadl::__check_thread_atexit(::_MCF_cond_signal_all, __cond.native_handle());
-    _Noadl::__check_thread_atexit(::_MCF_mutex_unlock, __lock.mutex()->native_handle());
+    int __err = ::__MCF_cxa_thread_atexit(__MCF_CAST_PTR(__MCF_cxa_dtor_cdecl, ::_MCF_cond_signal_all),
+                                          __cond.native_handle(), &__dso_handle);
+    if(__err != 0)
+      __MCF_THROW_SYSTEM_ERROR(not_enough_memory, "__MCF_cxa_thread_atexit");
+
+    __err = ::__MCF_cxa_thread_atexit(__MCF_CAST_PTR(__MCF_cxa_dtor_cdecl, ::_MCF_mutex_unlock),
+                                      __lock.mutex()->native_handle(), &__dso_handle);
+    if(__err != 0)
+      __MCF_THROW_SYSTEM_ERROR(not_enough_memory, "__MCF_cxa_thread_atexit");
+
     __lock.release();
   }
 
 // Reference implementation for [thread.thread.class]
+struct _Thread_id
+  {
+    uint32_t _M_tid;  // Windows thread ID
+
+    constexpr _Thread_id() noexcept : _M_tid()  { }
+    explicit constexpr _Thread_id(::_MCF_thread* __thr_opt) noexcept
+      : _M_tid(__thr_opt ? ::_MCF_thread_get_tid(__thr_opt) : 0U)  { }
+  };
+
 class thread
   {
   private:
-    ::_MCF_thread* _M_thr = nullptr;
+    ::_MCF_thread* _M_thr;
 
     thread(const thread&) = delete;
     thread& operator=(const thread&) = delete;
 
   public:
-    constexpr thread() noexcept { }
+    constexpr thread() noexcept : _M_thr() { }
 
     template<typename _Callable, typename... _Args,
     __MCF_SFINAE_DISABLE_IF(::std::is_same<typename ::std::decay<_Callable>::type, thread>::value)>
@@ -560,47 +668,61 @@ class thread
         struct _My_data
           {
             _My_invoker _M_invoker[1];
-            ::_MCF_event _M_status[1];
+            ::_MCF_event _M_ctor_status[1];
+          };
 
-            static
-            void
-            __do_it(::_MCF_thread* __thr)
-              {
-                _My_data* const __my = (_My_data*) ::_MCF_thread_get_data(__thr);
+        struct _Thread_sentry
+          {
+            static void __deferred_prototype(::_MCF_thread*) noexcept;
+            decltype(__deferred_prototype)* __deferred_fn;
+            ::_MCF_thread* __thr;
 
-                // Check whether `*_M_invoker` has been constructed. If its
-                // constructor failed, this thread shall exit immediately.
-                int __st = ::_MCF_event_await_change(__my->_M_status, _St_zero, nullptr);
-                if(__st == _St_cancelled)
-                  return;
+            ~_Thread_sentry() noexcept
+              { (* this->__deferred_fn) (this->__thr);  }
+          };
 
-                // Execute the user-defined procedure.
-                __MCF_ASSERT(__st == _St_constructed);
-                __my->_M_invoker->__do_it();
-                __my->_M_invoker->~_My_invoker();
-              };
+        auto __thread_fn = [](::_MCF_thread* __thr)
+          {
+            _My_data* const __my = (_My_data*) ::_MCF_thread_get_data(__thr);
+
+            // Check whether `*_M_invoker` has been constructed. If its
+            // constructor failed, this thread shall exit immediately.
+            int __st = ::_MCF_event_await_change(__my->_M_ctor_status, _St_zero, nullptr);
+            if(__st == _St_cancelled)
+              return;
+
+            // Execute the user-defined procedure.
+            __MCF_ASSERT(__st == _St_constructed);
+            __my->_M_invoker->__do_it();
+            __my->_M_invoker->~_My_invoker();
+          };
+
+        auto __sentry_cancel_thread = [](::_MCF_thread* __thr) noexcept
+          {
+            _My_data* const __my = (_My_data*) ::_MCF_thread_get_data(__thr);
+
+            // Cancel the thread.
+            ::_MCF_event_set(__my->_M_ctor_status, _St_cancelled);
+            ::_MCF_thread_drop_ref(__thr);
+          };
+
+        auto __sentry_complete_thread = [](::_MCF_thread* __thr) noexcept
+          {
+            _My_data* const __my = (_My_data*) ::_MCF_thread_get_data(__thr);
+
+            // Let the thread go.
+            ::_MCF_event_set(__my->_M_ctor_status, _St_constructed);
           };
 
         // Create the thread. User-defined data are initialized to zeroes.
-        this->_M_thr = ::_MCF_thread_new_aligned(_My_data::__do_it, alignof(_My_data), nullptr, sizeof(_My_data));
+        this->_M_thr = ::_MCF_thread_new_aligned(__thread_fn, alignof(_My_data), nullptr, sizeof(_My_data));
         if(!this->_M_thr)
           __MCF_THROW_SYSTEM_ERROR(resource_unavailable_try_again, "_MCF_thread_new_aligned");
 
-        _My_data* const __my = (_My_data*) ::_MCF_thread_get_data(this->_M_thr);
-
-        __MCF_TRY {
-          // Construct `_M_invoker`.
-          ::new((void*) __my->_M_invoker) _My_invoker(__callable, __args...);
-        }
-        __MCF_CATCH(...) {
-          // Cancel the thread.
-          ::_MCF_event_set(__my->_M_status, _St_cancelled);
-          ::_MCF_thread_drop_ref(this->_M_thr);
-          __MCF_THROW();
-        }
-
-        // Let the thread go.
-        ::_MCF_event_set(__my->_M_status, _St_constructed);
+        // active
+        _Thread_sentry __sentry = { __sentry_cancel_thread, this->_M_thr };
+        ::new(::_MCF_thread_get_data(this->_M_thr)) _My_invoker(__callable, __args...);
+        __sentry.__deferred_fn = __sentry_complete_thread;
       }
 
     thread(thread&& __other) noexcept
@@ -628,13 +750,7 @@ class thread
       }
 
     using native_handle_type = ::_MCF_thread*;
-
-    struct id
-      {
-        uint32_t _M_tid = 0;  // native thread ID
-
-        constexpr id() noexcept { }
-      };
+    using id = _Thread_id;
 
     __MCF_CXX14(constexpr)
     native_handle_type
@@ -683,10 +799,7 @@ class thread
     id
     get_id() const noexcept
       {
-        id __id;
-        if(this->_M_thr)
-          __id._M_tid = ::_MCF_thread_get_tid(this->_M_thr);
-        return __id;
+        return id(this->_M_thr);
       }
 
     static
@@ -806,33 +919,25 @@ template<typename _Tp>
 class thread_specific_ptr
   {
   private:
-    ::_MCF_tls_key* _M_key = nullptr;
+    ::_MCF_tls_key* _M_key;
 
     thread_specific_ptr(const thread_specific_ptr&) = delete;
     thread_specific_ptr& operator=(const thread_specific_ptr&) = delete;
 
-    static
-    void
-    __default_cleanup(_Tp* __ptr) noexcept
-      {
-        delete __ptr;
-      }
-
-    using _Native_cleanup = void (void*);
-    using _Specialized_cleanup = void (_Tp*);
-
   public:
-    explicit
-    thread_specific_ptr(_Specialized_cleanup* __cleanup_opt)
+    thread_specific_ptr()
       {
-        this->_M_key = ::_MCF_tls_key_new((_Native_cleanup*) __cleanup_opt);
+        this->_M_key = ::_MCF_tls_key_new(+[](void* __vptr) { delete (_Tp*) __vptr; });
         if(!this->_M_key)
           __MCF_THROW_SYSTEM_ERROR(resource_unavailable_try_again, "_MCF_tls_key_new");
       }
 
-    thread_specific_ptr()
-      : thread_specific_ptr(__default_cleanup)
+    explicit
+    thread_specific_ptr(void (*__cleanup_opt) (_Tp*))
       {
+        this->_M_key = ::_MCF_tls_key_new(__MCF_CAST_PTR(::_MCF_tls_dtor, __cleanup_opt));
+        if(!this->_M_key)
+          __MCF_THROW_SYSTEM_ERROR(resource_unavailable_try_again, "_MCF_tls_key_new");
       }
 
     ~thread_specific_ptr()
@@ -841,6 +946,8 @@ class thread_specific_ptr
       }
 
     using native_handle_type = ::_MCF_tls_key*;
+    using element_type = _Tp;
+    using pointer = _Tp*;
 
     __MCF_CXX14(constexpr)
     native_handle_type
@@ -848,9 +955,6 @@ class thread_specific_ptr
       {
         return this->_M_key;
       }
-
-    using element_type = _Tp;
-    using pointer = _Tp*;
 
     pointer
     get() const noexcept

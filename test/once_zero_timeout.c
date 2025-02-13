@@ -1,6 +1,9 @@
 /* This file is part of MCF Gthread.
- * See LICENSE.TXT for licensing information.
- * Copyleft 2022, LH_Mouse. All wrongs reserved.  */
+ * Copyright (C) 2022-2025 LH_Mouse. All wrongs reserved.
+ *
+ * MCF Gthread is free software. Licensing information is included in
+ * LICENSE.TXT as a whole. The GCC Runtime Library Exception applies
+ * to this file.  */
 
 #include "../mcfgthread/once.h"
 #include "../mcfgthread/thread.h"
@@ -24,7 +27,7 @@ thread_proc(_MCF_thread* self)
     _MCF_once_wait(&start, __MCF_nullptr);
 
     int r = _MCF_once_wait(&once, (const int64_t[]) { 0 });
-    printf("thread %d got %d\n", self->__tid, r);
+    fprintf(stderr, "thread %d got %d\n", self->__tid, r);
     if(r == 1) {
       /* Perform initialization.  */
       int old = resource;
@@ -33,23 +36,23 @@ thread_proc(_MCF_thread* self)
       _MCF_once_release(&once);
 
       _MCF_sleep((const int64_t[]) { -100 });
-      __atomic_fetch_add(&num_init, 1, __ATOMIC_RELAXED);
+      _MCF_atomic_xadd_32_rlx(&num_init, 1);
     }
     else if(r == 0) {
       /* Assume `resource` has been initialized.  */
       assert(resource == 1);
 
       _MCF_sleep((const int64_t[]) { -100 });
-      __atomic_fetch_add(&num_ready, 1, __ATOMIC_RELAXED);
+      _MCF_atomic_xadd_32_rlx(&num_ready, 1);
     }
     else if(r == -1) {
       _MCF_sleep((const int64_t[]) { -100 });
-      __atomic_fetch_add(&num_timed_out, 1, __ATOMIC_RELAXED);
+      _MCF_atomic_xadd_32_rlx(&num_timed_out, 1);
     }
     else
       assert(0);
 
-    printf("thread %d quitting\n", self->__tid);
+    fprintf(stderr, "thread %d quitting\n", self->__tid);
   }
 
 int
@@ -60,11 +63,11 @@ main(void)
       assert(threads[k]);
     }
 
-    printf("main waiting\n");
+    fprintf(stderr, "main waiting\n");
     _MCF_once_release(&start);
     for(size_t k = 0;  k < NTHREADS;  ++k) {
       _MCF_thread_wait(threads[k], __MCF_nullptr);
-      printf("main wait finished: %d\n", (int)k);
+      fprintf(stderr, "main wait finished: %d\n", (int)k);
     }
 
     assert(resource == 1);

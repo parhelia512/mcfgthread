@@ -1,6 +1,9 @@
 /* This file is part of MCF Gthread.
- * See LICENSE.TXT for licensing information.
- * Copyleft 2022, LH_Mouse. All wrongs reserved.  */
+ * Copyright (C) 2022-2025 LH_Mouse. All wrongs reserved.
+ *
+ * MCF Gthread is free software. Licensing information is included in
+ * LICENSE.TXT as a whole. The GCC Runtime Library Exception applies
+ * to this file.  */
 
 #include "../mcfgthread/cxx11.hpp"
 #include "../mcfgthread/sem.h"
@@ -30,8 +33,8 @@ thread_proc()
     ::_MCF_sem_wait(&start, nullptr);
 
     for(;;) {
-      NS::unique_lock<NS::mutex> lock(mutex, NS::try_to_lock);
-      if(lock) {
+      NS::unique_lock<NS::mutex> xlk(mutex, NS::try_to_lock);
+      if(xlk) {
         // Add a resource.
         int old = resource;
         NS::this_thread::sleep_for(NS::chrono::milliseconds(10));
@@ -42,7 +45,7 @@ thread_proc()
         NS::this_thread::sleep_for(NS::chrono::milliseconds(10));
     }
 
-    ::printf("thread %d quitting\n", (int) ::_MCF_thread_self_tid());
+    ::fprintf(stderr, "thread %d quitting\n", (int) ::_MCF_thread_self_tid());
   }
 
 int
@@ -51,7 +54,7 @@ main(void)
     for(auto& thr : threads)
       thr = NS::thread(thread_proc);
 
-    ::printf("main waiting\n");
+    ::fprintf(stderr, "main waiting\n");
     ::_MCF_sem_signal_some(&start, NTHREADS);
 
     for(auto& thr : threads)

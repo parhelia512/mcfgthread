@@ -1,6 +1,9 @@
 /* This file is part of MCF Gthread.
- * See LICENSE.TXT for licensing information.
- * Copyleft 2022, LH_Mouse. All wrongs reserved.  */
+ * Copyright (C) 2022-2025 LH_Mouse. All wrongs reserved.
+ *
+ * MCF Gthread is free software. Licensing information is included in
+ * LICENSE.TXT as a whole. The GCC Runtime Library Exception applies
+ * to this file.  */
 
 #include "../mcfgthread/cxx11.hpp"
 #include <assert.h>
@@ -31,17 +34,17 @@ thread_proc(int& my_consumed)
   {
     for(;;) {
       // Wait for value.
-      NS::unique_lock<NS::mutex> lock(mutex);
-      cond_produced.wait(lock, []{ return value != 0;  });
+      NS::unique_lock<NS::mutex> xlk(mutex);
+      cond_produced.wait(xlk, []{ return value != 0;  });
 
       // Consume it.
       int value_got = value;
-      //::printf("thread %d got %d\n", (int) ::_MCF_thread_self_tid(), value_got);
+      //::fprintf(stderr, "thread %d got %d\n", (int) ::_MCF_thread_self_tid(), value_got);
       if(value_got > 0)
         value = 0;
 
       cond_consumed.notify_one();
-      lock.unlock();
+      xlk.unlock();
 
       if(value_got < 0)
         break;
@@ -50,7 +53,7 @@ thread_proc(int& my_consumed)
       my_consumed += value_got;
     }
 
-    ::printf("thread %d quitting\n", (int) ::_MCF_thread_self_tid());
+    ::fprintf(stderr, "thread %d quitting\n", (int) ::_MCF_thread_self_tid());
   }
 
 int
@@ -60,35 +63,35 @@ main(void)
       threads.at(k) = NS::thread(thread_proc, std::ref(consumed.at(k)));
 
     NS::this_thread::sleep_for(NS::chrono::milliseconds(500));
-    NS::unique_lock<NS::mutex> lock(mutex);
+    NS::unique_lock<NS::mutex> xlk(mutex);
 
     for(std::size_t k = 0;  k < NTICKS;  ++k) {
       // Wait for consumption
-      cond_consumed.wait(lock, []{ return value == 0;  });
+      cond_consumed.wait(xlk, []{ return value == 0;  });
 
       // Produce one.
       value = 1;
-      //::printf("main set %d\n", value);
+      //::fprintf(stderr, "main set %d\n", value);
 
       cond_produced.notify_one();
     }
 
-    cond_consumed.wait(lock, []{ return value == 0;  });
+    cond_consumed.wait(xlk, []{ return value == 0;  });
 
     // Inform end of input
     value = -1;
-    ::printf("main set end of input\n");
+    ::fprintf(stderr, "main set end of input\n");
 
     cond_produced.notify_all();
-    lock.unlock();
+    xlk.unlock();
 
     // Wait and sum all values
     int total = 0;
-    ::printf("main waiting\n");
+    ::fprintf(stderr, "main waiting\n");
 
     for(std::size_t k = 0;  k < NTHREADS;  ++k) {
       threads.at(k).join();
-      ::printf("main wait finished: %d, consumed %d\n", (int) k, consumed.at(k));
+      ::fprintf(stderr, "main wait finished: %d, consumed %d\n", (int) k, consumed.at(k));
       total += consumed.at(k);
     }
 
