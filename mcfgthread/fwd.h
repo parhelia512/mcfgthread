@@ -253,18 +253,12 @@ typedef unsigned int uint32_t;
 typedef unsigned __MCF_INT64_ uint64_t;
 typedef unsigned __MCF_INTPTR_ uintptr_t;
 
-#ifndef LLONG_MAX
-#  define LLONG_MAX  0x7FFFFFFFFFFFFFFFL
-#  define LLONG_MIN  (-0x7FFFFFFFFFFFFFFFL-1)
-#  define ULLONG_MAX  0xFFFFFFFFFFFFFFFFUL
-#endif
-
 #define __MCF_PTR_BITS    __MCF_64_32(64, 32)
-#define __MCF_IPTR_MIN    __MCF_64_32(LLONG_MIN, INT_MIN)
+#define __MCF_IPTR_MIN    __MCF_64_32((-0x7FFFFFFFFFFFFFFFLL-1), (-0x7FFFFFFF-1))
 #define __MCF_IPTR_0      __MCF_64_32(0LL, 0)
-#define __MCF_IPTR_MAX    __MCF_64_32(LLONG_MAX, INT_MAX)
+#define __MCF_IPTR_MAX    __MCF_64_32(0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFF)
 #define __MCF_UPTR_0      __MCF_64_32(0ULL, 0U)
-#define __MCF_UPTR_MAX    __MCF_64_32(ULLONG_MAX, UINT_MAX)
+#define __MCF_UPTR_MAX    __MCF_64_32(0xFFFFFFFFFFFFFFFFULL, 0xFFFFFFFFU)
 
 /* I can't find a better name for this macro. It controls whether the complete
  * definitions of inline functions are compiled. If headers are included by user
@@ -296,11 +290,11 @@ template<> struct __MCF_static_assert<true> { static const int __one = 1; };
 }  /* extern "C++"  */
 #  define __MCF_STATIC_ASSERT_1(...)   (__MCF_static_assert<(__VA_ARGS__)>::__one)
 #else
-#  define __MCF_STATIC_ASSERT_1(...)   ((int) sizeof(struct { char : 1 | -!(__VA_ARGS__); }))
+#  define __MCF_STATIC_ASSERT_1(...)   (__MCF_EX (int) sizeof(struct { char : 1 | -!(__VA_ARGS__); }))
 #endif
 
-#  define __MCF_STATIC_ASSERT_0(...)   (__MCF_STATIC_ASSERT_1(__VA_ARGS__) - 1)
-#  define __MCF_STATIC_ASSERT(...)    extern int __MCF_static_assert_true[__MCF_STATIC_ASSERT_1(__VA_ARGS__)]
+#define __MCF_STATIC_ASSERT_0(...)   (__MCF_STATIC_ASSERT_1(__VA_ARGS__) - 1)
+#define __MCF_STATIC_ASSERT(...)    extern int __MCF_static_assert_true[__MCF_STATIC_ASSERT_1(__VA_ARGS__)]
 
 /* The `__MCF_ASSERT()` and `__MCF_CHECK()` macros perform run-time checks. If
  * an argument yields false, `__MCF_ASSERT()` results in undefined behavior,

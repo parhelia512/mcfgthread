@@ -388,7 +388,7 @@ memcmp(const void* src, const void* dst, size_t size)
 
 #if defined _MSC_VER
 /* Microsoft LINK requires this for a reason.  */
-const int _fltused __attribute__((__used__)) = 0x9875;
+const int _fltused __MCF_CRT_RDATA = 0x9875;
 #endif
 
 #if defined __i386__
@@ -603,7 +603,7 @@ struct _IMAGE_LOAD_CONFIG_DIRECTORY_10_0_26100_0
     ULONG_PTR CastGuardOsDeterminedFailureMode;
     ULONG_PTR GuardMemcpyFunctionPointer;
   }
-const _load_config_used __attribute__((__used__)) =
+const _load_config_used __MCF_CRT_RDATA =
   {
     .Size = sizeof(_load_config_used),
     .DependentLoadFlags = LOAD_LIBRARY_SEARCH_SYSTEM32,
@@ -649,7 +649,6 @@ do_tls_callback(PVOID module, ULONG reason, LPVOID reserved)
 __pragma(comment(linker, "/include:" __MCF_USYM "_tls_used"))
 __pragma(section(".CRT$XLB", read))
 #endif
-__attribute__((__section__(".CRT$XLB"), __used__))
-const PIMAGE_TLS_CALLBACK __MCF_crt_xl_b = do_tls_callback;
+const PIMAGE_TLS_CALLBACK __MCF_crt_xl_b __MCF_CRT_XL(B) = do_tls_callback;
 
 #endif  /* __MCF_IN_DLL  */
