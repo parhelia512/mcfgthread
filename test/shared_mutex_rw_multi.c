@@ -10,6 +10,7 @@
 #include "../mcfgthread/sem.h"
 #include <assert.h>
 #include <stdio.h>
+#include <windows.h>
 
 #define NTHREADS  32U
 static _MCF_thread* reader_threads[NTHREADS];
@@ -32,12 +33,12 @@ reader_thread_proc(_MCF_thread* self)
 
       /* Check resources are equal.  */
       int t1 = res1;
-      _MCF_yield();
+      SwitchToThread();
       assert(t1 == res2);
       _MCF_shared_mutex_unlock(&mutex);
 
       //fprintf(stderr, "R    thread %d\n", __MCF_tid());
-      _MCF_yield();
+      SwitchToThread();
     }
 
     fprintf(stderr, "R    thread %d quitting\n", self->__tid);
@@ -55,13 +56,13 @@ writer_thread_proc(_MCF_thread* self)
 
       /* Add resources.  */
       res1 ++;
-      _MCF_yield();
+      SwitchToThread();
       res2 ++;
       assert(res1 == res2);
       _MCF_shared_mutex_unlock(&mutex);
 
       //fprintf(stderr, "  W  thread %d\n", __MCF_tid());
-      _MCF_yield();
+      SwitchToThread();
     }
 
     fprintf(stderr, "  W  thread %d quitting\n", self->__tid);
