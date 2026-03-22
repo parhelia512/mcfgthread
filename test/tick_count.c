@@ -13,7 +13,8 @@
 int
 main(void)
   {
-    for(uint32_t i = 0;  i < 1000000;  i++) {
+    for(uint32_t i = 0;  i < 300;  i++) {
+      Sleep(10);
       ULONGLONG t1 = GetTickCount64();
       ULONGLONG t2 = (ULONGLONG) _MCF_tick_count();
 
