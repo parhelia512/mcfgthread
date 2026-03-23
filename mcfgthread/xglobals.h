@@ -184,6 +184,12 @@ NtRaiseHardError(
     IN ULONG ResponseOption,
     OUT ULONG* Response);
 
+/* Define a value that resembles `MM_SHARED_USER_DATA_VA` in Windows SDK for
+ * assembly, which has the same value on all architectures. This points to a
+ * read-only structure of type `KUSER_SHARED_DATA`; see
+ * <https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/ntddk/ns-ntddk-kuser_shared_data>.  */
+#define __MCF_SHARED_USER_DATA_VA  0x7FFE0000U
+
 /* Define data that must be placed in `.rdata` despite `-fdata-sections`.  */
 #define __MCF_CRT_RDATA  __attribute__((__used__, __section__(".rdata")))
 #define __MCF_CRT_XL(x)  __attribute__((__used__, __section__(".CRT$XL" #x)))
