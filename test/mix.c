@@ -40,20 +40,20 @@ main(void)
     assert(mdll_tls_xset != _MCF_tls_xset);
 
     // use common key
-    _MCF_tls_key* key = _MCF_tls_key_new(__MCF_nullptr);
+    _MCF_tls_key* key = _MCF_tls_key_new(NULL);
     assert(key);
-    assert(_MCF_tls_get(key) == __MCF_nullptr);
-    assert(pdll_tls_get(key) == __MCF_nullptr);
-    assert(mdll_tls_get(key) == __MCF_nullptr);
+    assert(_MCF_tls_get(key) == NULL);
+    assert(pdll_tls_get(key) == NULL);
+    assert(mdll_tls_get(key) == NULL);
 
     int dummy1 = 1;
-    _MCF_tls_xset(key, __MCF_nullptr, &dummy1);
+    _MCF_tls_xset(key, NULL, &dummy1);
     assert(_MCF_tls_get(key) == &dummy1);
     assert(pdll_tls_get(key) == &dummy1);
     assert(mdll_tls_get(key) == &dummy1);
 
     int dummy2 = 2;
-    pdll_tls_xset(key, __MCF_nullptr, &dummy2);
+    pdll_tls_xset(key, NULL, &dummy2);
     assert(_MCF_tls_get(key) == &dummy2);
     assert(pdll_tls_get(key) == &dummy2);
     assert(mdll_tls_get(key) == &dummy2);

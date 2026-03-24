@@ -46,12 +46,12 @@ main(void)
       }
     }
 
-    _MCF_thread* thrd = _MCF_thread_new(thread_proc, __MCF_nullptr, 0);
+    _MCF_thread* thrd = _MCF_thread_new(thread_proc, NULL, 0);
     assert(thrd);
 
     fprintf(stderr, "main waiting\n");
-    _MCF_thread_wait(thrd, __MCF_nullptr);
+    _MCF_thread_wait(thrd, NULL);
     fprintf(stderr, "main wait finished\n");
 
-    _MCF_thread_wait(thrd, __MCF_nullptr);
+    _MCF_thread_wait(thrd, NULL);
   }

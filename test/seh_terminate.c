@@ -25,7 +25,7 @@ void
 test_unhandled(void)
   {
     fprintf(stderr, "raise exception 2\n");
-    RaiseException(0x20474343U, 0, 0, __MCF_nullptr);  // terminate
+    RaiseException(0x20474343U, 0, 0, NULL);  // terminate
     fprintf(stderr, "continue 2\n");
     __MCF__Exit(41);
   }
@@ -45,7 +45,7 @@ int
 main(void)
   {
     SetUnhandledExceptionFilter(unhandled);
-    HANDLE thrd = CreateThread(__MCF_nullptr, 0, thread_proc, __MCF_nullptr, 0, __MCF_nullptr);
+    HANDLE thrd = CreateThread(NULL, 0, thread_proc, NULL, 0, NULL);
     assert(thrd);
     WaitForSingleObject(thrd, INFINITE);
     assert(false);

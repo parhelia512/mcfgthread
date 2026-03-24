@@ -26,12 +26,12 @@ thread_proc(void* param)
 int
 main(void)
   {
-    int r = __gthread_create(&thrd, thread_proc, __MCF_nullptr);
+    int r = __gthread_create(&thrd, thread_proc, NULL);
     assert(r == 0);
     assert(thrd);
 
     fprintf(stderr, "main waiting\n");
-    void* ret = __MCF_nullptr;
+    void* ret = NULL;
     r = __gthread_join(thrd, &ret);
     assert(r == 0);
     fprintf(stderr, "main wait finished: %p\n", ret);

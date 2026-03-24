@@ -26,13 +26,13 @@ int
 main(void)
   {
     for(size_t k = 0;  k < NTHREADS;  ++k) {
-      threads[k] = _MCF_thread_new(thread_proc, __MCF_nullptr, 0);
+      threads[k] = _MCF_thread_new(thread_proc, NULL, 0);
       assert(threads[k]);
     }
 
     fprintf(stderr, "main waiting\n");
     for(size_t k = 0;  k < NTHREADS;  ++k) {
-      _MCF_thread_wait(threads[k], __MCF_nullptr);
+      _MCF_thread_wait(threads[k], NULL);
       fprintf(stderr, "main wait finished: %d\n", (int)k);
     }
   }

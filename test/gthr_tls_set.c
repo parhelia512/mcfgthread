@@ -22,7 +22,7 @@ thread_proc(void* param)
     int r;
 
     p = __gthread_getspecific(key);
-    assert(p == __MCF_nullptr);
+    assert(p == NULL);
 
     r = __gthread_setspecific(key, &dso_2);
     assert(r == 0);
@@ -32,7 +32,7 @@ thread_proc(void* param)
 
     _MCF_sleep((const int64_t[]) { -1001 });
     fprintf(stderr, "thread %d quitting\n", __MCF_tid());
-    return __MCF_nullptr;
+    return NULL;
   }
 
 int
@@ -41,12 +41,12 @@ main(void)
     void* p;
     int r;
 
-    r = __gthread_key_create(&key, __MCF_nullptr);
+    r = __gthread_key_create(&key, NULL);
     assert(r == 0);
     assert(key);
 
     p = __gthread_getspecific(key);
-    assert(p == __MCF_nullptr);
+    assert(p == NULL);
 
     r = __gthread_setspecific(key, &dso_1);
     assert(r == 0);
@@ -54,12 +54,12 @@ main(void)
     p = __gthread_getspecific(key);
     assert(p == &dso_1);
 
-    r = __gthread_create(&thrd, thread_proc, __MCF_nullptr);
+    r = __gthread_create(&thrd, thread_proc, NULL);
     assert(r == 0);
     assert(thrd);
 
     fprintf(stderr, "main waiting\n");
-    __gthread_join(thrd, __MCF_nullptr);
+    __gthread_join(thrd, NULL);
     fprintf(stderr, "main wait finished\n");
 
     p = __gthread_getspecific(key);

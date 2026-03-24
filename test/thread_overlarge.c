@@ -20,6 +20,6 @@ thread_proc(_MCF_thread* self)
 int
 main(void)
   {
-    assert(_MCF_thread_new(thread_proc, __MCF_nullptr, PTRDIFF_MAX) == __MCF_nullptr);
+    assert(_MCF_thread_new(thread_proc, NULL, PTRDIFF_MAX) == NULL);
     assert(GetLastError() == ERROR_ARITHMETIC_OVERFLOW);
   }

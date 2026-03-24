@@ -23,6 +23,6 @@ main(void)
     if(!env_val || !*env_val)
       return 77;  // skip
 
-    SetLastError((DWORD) strtol(env_val, __MCF_nullptr, 10));
+    SetLastError((DWORD) strtol(env_val, NULL, 10));
     __MCF_CHECK(false);
   }

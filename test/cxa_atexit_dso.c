@@ -41,7 +41,7 @@ main(void)
     assert(r == 0);
     r = __MCF_cxa_atexit(cleanup_1, (void*) "c1", &dso_1);
     assert(r == 0);
-    r = __MCF_cxa_atexit(cleanup_1, (void*) "dN", __MCF_nullptr);
+    r = __MCF_cxa_atexit(cleanup_1, (void*) "dN", NULL);
     assert(r == 0);
     r = __MCF_cxa_atexit(cleanup_2, (void*) "e2", &dso_2);
     assert(r == 0);
@@ -49,7 +49,7 @@ main(void)
     assert(r == 0);
     r = __MCF_cxa_atexit(cleanup_2, (void*) "g1", &dso_1);
     assert(r == 0);
-    r = __MCF_cxa_atexit(cleanup_2, (void*) "hN", __MCF_nullptr);
+    r = __MCF_cxa_atexit(cleanup_2, (void*) "hN", NULL);
     assert(r == 0);
     r = __MCF_cxa_atexit(cleanup_1, (void*) "i1", &dso_1);
     assert(r == 0);
@@ -57,7 +57,7 @@ main(void)
     assert(r == 0);
     r = __MCF_cxa_atexit(cleanup_1, (void*) "k2", &dso_2);
     assert(r == 0);
-    r = __MCF_cxa_atexit(cleanup_1, (void*) "lN", __MCF_nullptr);
+    r = __MCF_cxa_atexit(cleanup_1, (void*) "lN", NULL);
     assert(r == 0);
     r = __MCF_cxa_atexit(cleanup_2, (void*) "m1", &dso_1);
     assert(r == 0);
@@ -65,7 +65,7 @@ main(void)
     assert(r == 0);
     r = __MCF_cxa_atexit(cleanup_2, (void*) "o2", &dso_2);
     assert(r == 0);
-    r = __MCF_cxa_atexit(cleanup_2, (void*) "pN", __MCF_nullptr);
+    r = __MCF_cxa_atexit(cleanup_2, (void*) "pN", NULL);
     assert(r == 0);
 
     assert(strcmp(buffer, "") == 0);
@@ -77,7 +77,7 @@ main(void)
     assert(strcmp(buffer, "o2n2k2e2b2") == 0);
 
     buffer[0] = 0;
-    __MCF_cxa_finalize(__MCF_nullptr);
+    __MCF_cxa_finalize(NULL);
     assert(strcmp(buffer, "pNlNhNdN") == 0);
     __MCF__Exit(0);
   }

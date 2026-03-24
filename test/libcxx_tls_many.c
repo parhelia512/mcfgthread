@@ -14,7 +14,7 @@ main(void)
 #define NKEYS  1000U
     __libcpp_tls_key keys[NKEYS];
     for(size_t k = 0;  k != NKEYS;  ++k) {
-      int r = __libcpp_tls_create(&keys[k], __MCF_nullptr);
+      int r = __libcpp_tls_create(&keys[k], NULL);
       assert(r == 0);
       assert(keys[k]);
     }

@@ -21,7 +21,7 @@ int
 thread_proc(void* param)
   {
     (void) param;
-    _MCF_sem_wait(&start, __MCF_nullptr);
+    _MCF_sem_wait(&start, NULL);
 
     for(;;) {
       int r = mtx_trylock(&mutex);
@@ -55,7 +55,7 @@ main(void)
     assert(err == thrd_success);
 
     for(size_t k = 0;  k < NTHREADS;  ++k) {
-      int r = thrd_create(&threads[k], thread_proc, __MCF_nullptr);
+      int r = thrd_create(&threads[k], thread_proc, NULL);
       assert(r == thrd_success);
       assert(threads[k]);
     }
@@ -63,7 +63,7 @@ main(void)
     fprintf(stderr, "main waiting\n");
     _MCF_sem_signal_some(&start, NTHREADS);
     for(size_t k = 0;  k < NTHREADS;  ++k) {
-      int r = thrd_join(threads[k], __MCF_nullptr);
+      int r = thrd_join(threads[k], NULL);
       assert(r == thrd_success);
       fprintf(stderr, "main wait finished: %d\n", (int)k);
     }

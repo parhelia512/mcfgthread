@@ -22,15 +22,15 @@ main(void)
     __gthread_time_t timeout;
     int r;
 
-    _MCF_thread_set_priority(__MCF_nullptr, _MCF_thread_priority_above_normal);
+    _MCF_thread_set_priority(NULL, _MCF_thread_priority_above_normal);
 
     r = __gthread_mutex_trylock(&mutex);
     assert(r == 0);
 
-    sleep_until = time(__MCF_nullptr) + 2;
+    sleep_until = time(NULL) + 2;
     _MCF_sleep(&(int64_t) { sleep_until * 1000LL - 20 });
     do { now = _MCF_perf_counter();
-         timeout.tv_sec = time(__MCF_nullptr);
+         timeout.tv_sec = time(NULL);
     } while(timeout.tv_sec < sleep_until);
     timeout.tv_sec += 1;
     timeout.tv_nsec = 115999999;  // relaxed

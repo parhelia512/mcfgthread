@@ -14,7 +14,7 @@ main(void)
 #define NKEYS  1000U
     __gthread_key_t keys[NKEYS];
     for(size_t k = 0;  k != NKEYS;  ++k) {
-      int r = __gthread_key_create(&keys[k], __MCF_nullptr);
+      int r = __gthread_key_create(&keys[k], NULL);
       assert(r == 0);
       assert(keys[k]);
     }

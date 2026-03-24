@@ -47,7 +47,7 @@ once_do_it(void)
     _MCF_sleep((const int64_t[]) { -10 });
     fprintf(stderr, "thread %d once\n", __MCF_tid());
 
-    RtlUnwind(__MCF_nullptr, __MCF_nullptr, __MCF_nullptr, __MCF_nullptr);
+    RtlUnwind(NULL, NULL, NULL, NULL);
     abort();
   }
 
@@ -63,7 +63,7 @@ thread_proc(void* param)
 #endif
 
     (void) param;
-    _MCF_sem_wait(&start, __MCF_nullptr);
+    _MCF_sem_wait(&start, NULL);
 
     call_once(&once, once_do_it);
     fprintf(stderr, "thread %d quitting\n", __MCF_tid());
@@ -74,7 +74,7 @@ int
 main(void)
   {
     for(size_t k = 0;  k < NTHREADS;  ++k) {
-      int r = thrd_create(&threads[k], thread_proc, __MCF_nullptr);
+      int r = thrd_create(&threads[k], thread_proc, NULL);
       assert(r == thrd_success);
       assert(threads[k]);
     }
@@ -82,7 +82,7 @@ main(void)
     fprintf(stderr, "main waiting\n");
     _MCF_sem_signal_some(&start, NTHREADS);
     for(size_t k = 0;  k < NTHREADS;  ++k) {
-      int r = thrd_join(threads[k], __MCF_nullptr);
+      int r = thrd_join(threads[k], NULL);
       assert(r == thrd_success);
       fprintf(stderr, "main wait finished: %d\n", (int)k);
     }

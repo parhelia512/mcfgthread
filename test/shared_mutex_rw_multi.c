@@ -25,10 +25,10 @@ static
 void
 reader_thread_proc(_MCF_thread* self)
   {
-    _MCF_sem_wait(&start, __MCF_nullptr);
+    _MCF_sem_wait(&start, NULL);
 
     for(uint32_t i = 0; i < NITER;  ++i) {
-      int r = _MCF_shared_mutex_lock_shared(&mutex, __MCF_nullptr);
+      int r = _MCF_shared_mutex_lock_shared(&mutex, NULL);
       assert(r == 0);
 
       /* Check resources are equal.  */
@@ -48,10 +48,10 @@ static
 void
 writer_thread_proc(_MCF_thread* self)
   {
-    _MCF_sem_wait(&start, __MCF_nullptr);
+    _MCF_sem_wait(&start, NULL);
 
     for(uint32_t i = 0; i < NITER;  ++i) {
-      int r = _MCF_shared_mutex_lock_exclusive(&mutex, __MCF_nullptr);
+      int r = _MCF_shared_mutex_lock_exclusive(&mutex, NULL);
       assert(r == 0);
 
       /* Add resources.  */
@@ -72,9 +72,9 @@ int
 main(void)
   {
     for(size_t k = 0;  k < NTHREADS;  ++k) {
-      reader_threads[k] = _MCF_thread_new(reader_thread_proc, __MCF_nullptr, 0);
+      reader_threads[k] = _MCF_thread_new(reader_thread_proc, NULL, 0);
       assert(reader_threads[k]);
-      writer_threads[k] = _MCF_thread_new(writer_thread_proc, __MCF_nullptr, 0);
+      writer_threads[k] = _MCF_thread_new(writer_thread_proc, NULL, 0);
       assert(writer_threads[k]);
     }
 
@@ -82,8 +82,8 @@ main(void)
     _MCF_sem_signal_some(&start, NTHREADS * 2);
 
     for(size_t k = 0;  k < NTHREADS;  ++k) {
-      _MCF_thread_wait(reader_threads[k], __MCF_nullptr);
-      _MCF_thread_wait(writer_threads[k], __MCF_nullptr);
+      _MCF_thread_wait(reader_threads[k], NULL);
+      _MCF_thread_wait(writer_threads[k], NULL);
       fprintf(stderr, "main wait finished: %d\n", (int)k);
     }
 

@@ -16,14 +16,14 @@ main(void)
     _MCF_tls_key* keys[NKEYS];
 
     for(size_t k = 0;  k != NKEYS;  ++k) {
-      keys[k] = _MCF_tls_key_new(__MCF_nullptr);
+      keys[k] = _MCF_tls_key_new(NULL);
       assert(keys[k]);
-      assert(_MCF_tls_key_get_destructor(keys[k]) == __MCF_nullptr);
+      assert(_MCF_tls_key_get_destructor(keys[k]) == NULL);
     }
 
     for(size_t k = 0;  k != NKEYS;  ++k) {
       void* p = _MCF_tls_get(keys[k]);
-      assert(p == __MCF_nullptr);
+      assert(p == NULL);
 
       for(size_t v = 0;  v != NVALS;  ++v) {
         int r = _MCF_tls_set(keys[k], (void*) (v + k));

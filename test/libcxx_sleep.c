@@ -13,7 +13,7 @@
 int
 main(void)
   {
-    _MCF_thread_set_priority(__MCF_nullptr, _MCF_thread_priority_above_normal);
+    _MCF_thread_set_priority(NULL, _MCF_thread_priority_above_normal);
 
     double now = _MCF_perf_counter();
     __MCF_libcxx_thread_sleep_for_ns_count(1300000000);

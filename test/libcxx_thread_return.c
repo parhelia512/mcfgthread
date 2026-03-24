@@ -26,7 +26,7 @@ thread_proc(void* param)
 int
 main(void)
   {
-    int r = __libcpp_thread_create(&thrd, thread_proc, __MCF_nullptr);
+    int r = __libcpp_thread_create(&thrd, thread_proc, NULL);
     assert(r == 0);
     assert(thrd);
 

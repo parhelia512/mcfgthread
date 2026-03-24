@@ -14,7 +14,7 @@ static
 int
 test_thrd_func(void* p)
   {
-    thrd_sleep(&(struct timespec) { .tv_sec = 2 }, __MCF_nullptr);
+    thrd_sleep(&(struct timespec) { .tv_sec = 2 }, NULL);
     thrd_t mthr = p;
     fprintf(stderr, "got main thread = %p, ref = %d\n", (void*) mthr, _MCF_thread_get_ref(mthr));
 
@@ -39,7 +39,7 @@ main(void)
     assert(err == 0);
     fprintf(stderr, "new thread = %p\n", (void*) cthr);
 
-    thrd_sleep(&(struct timespec) { .tv_sec = 1 }, __MCF_nullptr);
+    thrd_sleep(&(struct timespec) { .tv_sec = 1 }, NULL);
     fprintf(stderr, "main thread exiting\n");
     thrd_exit(42);
   }

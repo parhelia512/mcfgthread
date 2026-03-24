@@ -22,7 +22,7 @@ thread_proc(void* param)
     int r;
 
     p = tss_get(key);
-    assert(p == __MCF_nullptr);
+    assert(p == NULL);
 
     r = tss_set(key, &dso_2);
     assert(r == thrd_success);
@@ -41,12 +41,12 @@ main(void)
     void* p;
     int r;
 
-    r = tss_create(&key, __MCF_nullptr);
+    r = tss_create(&key, NULL);
     assert(r == thrd_success);
     assert(key);
 
     p = tss_get(key);
-    assert(p == __MCF_nullptr);
+    assert(p == NULL);
 
     r = tss_set(key, &dso_1);
     assert(r == thrd_success);
@@ -54,12 +54,12 @@ main(void)
     p = tss_get(key);
     assert(p == &dso_1);
 
-    r = thrd_create(&thrd, thread_proc, __MCF_nullptr);
+    r = thrd_create(&thrd, thread_proc, NULL);
     assert(r == thrd_success);
     assert(thrd);
 
     fprintf(stderr, "main waiting\n");
-    thrd_join(thrd, __MCF_nullptr);
+    thrd_join(thrd, NULL);
     fprintf(stderr, "main wait finished\n");
 
     p = tss_get(key);

@@ -30,7 +30,7 @@ DWORD
 __stdcall
 thread_proc(LPVOID param)
   {
-    _MCF_sem_wait(&start, __MCF_nullptr);
+    _MCF_sem_wait(&start, NULL);
 
     int r = _MCF_tls_set(key, &count);
     assert(r == 0);
@@ -48,7 +48,7 @@ main(void)
     assert(_MCF_tls_key_get_destructor(key) == tls_destructor);
 
     for(size_t k = 0;  k < NTHREADS;  ++k) {
-      threads[k] = CreateThread(__MCF_nullptr, 0, thread_proc, __MCF_nullptr, 0, __MCF_nullptr);
+      threads[k] = CreateThread(NULL, 0, thread_proc, NULL, 0, NULL);
       assert(threads[k]);
     }
 

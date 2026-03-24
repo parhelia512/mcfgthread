@@ -21,7 +21,7 @@ void*
 thread_proc(void* param)
   {
     (void) param;
-    _MCF_sem_wait(&start, __MCF_nullptr);
+    _MCF_sem_wait(&start, NULL);
 
     for(;;) {
       int r = __gthread_recursive_mutex_trylock(&mutex);
@@ -52,14 +52,14 @@ thread_proc(void* param)
     }
 
     fprintf(stderr, "thread %d quitting\n", __MCF_tid());
-    return __MCF_nullptr;
+    return NULL;
   }
 
 int
 main(void)
   {
     for(size_t k = 0;  k < NTHREADS;  ++k) {
-      int r = __gthread_create(&threads[k], thread_proc, __MCF_nullptr);
+      int r = __gthread_create(&threads[k], thread_proc, NULL);
       assert(r == 0);
       assert(threads[k]);
     }
@@ -67,7 +67,7 @@ main(void)
     fprintf(stderr, "main waiting\n");
     _MCF_sem_signal_some(&start, NTHREADS);
     for(size_t k = 0;  k < NTHREADS;  ++k) {
-      int r = __gthread_join(threads[k], __MCF_nullptr);
+      int r = __gthread_join(threads[k], NULL);
       assert(r == 0);
       fprintf(stderr, "main wait finished: %d\n", (int)k);
     }

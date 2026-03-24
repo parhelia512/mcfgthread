@@ -21,7 +21,7 @@ int
 main(void)
   {
     static int value = 0;
-    __MCF_cxa_thread_atexit(tls_dtor, &value, __MCF_nullptr);
+    __MCF_cxa_thread_atexit(tls_dtor, &value, NULL);
 
     __MCF_exit(42);
   }

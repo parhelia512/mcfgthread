@@ -17,19 +17,19 @@ void*
 thread_proc(void* param)
   {
     (void) param;
-    _MCF_mutex_lock(&mtx, __MCF_nullptr);
+    _MCF_mutex_lock(&mtx, NULL);
     assert(__libcpp_thread_id_equal(__MCF_libcxx_thread_get_current_id(), __libcpp_thread_get_id(&thrd)));
     assert(__libcpp_thread_id_equal(__MCF_libcxx_thread_get_current_id(), _MCF_thread_self_tid()));
 
     fprintf(stderr, "thread %d quitting\n", __MCF_tid());
-    return __MCF_nullptr;
+    return NULL;
   }
 
 int
 main(void)
   {
-    _MCF_mutex_lock(&mtx, __MCF_nullptr);
-    int r = __libcpp_thread_create(&thrd, thread_proc, __MCF_nullptr);
+    _MCF_mutex_lock(&mtx, NULL);
+    int r = __libcpp_thread_create(&thrd, thread_proc, NULL);
     _MCF_mutex_unlock(&mtx);
     assert(r == 0);
     assert(thrd);

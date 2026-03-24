@@ -55,7 +55,7 @@ thread_proc(void* param)
     }
 
     fprintf(stderr, "thread %d quitting\n", __MCF_tid());
-    return __MCF_nullptr;
+    return NULL;
   }
 
 int
