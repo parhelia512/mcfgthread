@@ -64,21 +64,20 @@ __MCF_DLLEXPORT
 int64_t
 _MCF_tick_count(void)
   {
-    /* `KSYSTEM_TIME InterruptTime` is at offset 8 for all architectures.  */
-    char* timep = (char*) (__MCF_SHARED_USER_DATA_VA + 0x08);
+    char* pSharedInterruptTime = (char*) (__MCF_SHARED_USER_DATA_VA + 0x08);
 #if __MCF_64_32(1, 0)
-    return (int64_t) do_divide_by_10000(*(const volatile ULONGLONG*) timep);
+    return (int64_t) do_divide_by_10000(*(const volatile ULONGLONG*) pSharedInterruptTime);
 #else
-    /* A 32-bit kernel does not write 64-bit integers atomically, which
-     * requires special treatment. The kernel writes `High2Time` then
-     * `LowPart` then `High1Time` so we read them in the reverse order. If
-     * `High1Time` is not equal to `High2Time`, then the value is split and
-     * we must try again.  */
     ULONG high, low;
     do {
-      high = *(const volatile ULONG*) (timep + 0x04);
-      low = *(const volatile ULONG*) (timep + 0x00);
-    } while(high != *(const volatile ULONG*) (timep + 0x08));
+      /* A 32-bit kernel does not write 64-bit integers atomically, which
+       * requires special treatment. The kernel writes `High2Time` then
+       * `LowPart` then `High1Time` so we read them in the reverse order. If
+       * `High1Time` does not equal `High2Time`, then the value will have
+       * been split and we must try again.  */
+      high = *(const volatile ULONG*) (pSharedInterruptTime + 0x04);
+      low = *(const volatile ULONG*) (pSharedInterruptTime + 0x00);
+    } while(high != *(const volatile ULONG*) (pSharedInterruptTime + 0x08));
     return (int64_t) do_divide_by_10000(high * 0x100000000ULL + low);
 #endif
   }
