@@ -39,7 +39,7 @@ main(void)
     bool is_on_wine = GetProcAddress(__MCF_crt_ntdll, "wine_get_version") != NULL;
 
     WCHAR gname_str[128] = L"Local\\__MCF_crt_xglobals_";
-    WCHAR* eptr = gname_str + wcslen(gname_str);
+    WCHAR* eptr = gname_str + lstrlenW(gname_str);
     UINT32 pid = GetCurrentProcessId();
     for(UINT i = 0; i != 8; ++i)
       *(eptr ++) = L"0123456789ABCDEF"[(pid >> (28 - i * 4)) & 0x0FU];
