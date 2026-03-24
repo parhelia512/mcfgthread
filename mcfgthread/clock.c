@@ -20,10 +20,10 @@ do_divide_by_10000(uint64_t value)
 #elif defined _MSC_VER && __MCF_64_32(1, 0)
     return __umulh(value, 0x68DB8BAC710CCULL);
 #else
-    uint64_t temp = (uint32_t) value * 0xBAC710CCULL >> 32;
-    uint64_t middle = (uint32_t) value * 0x68DB8ULL;
-    temp = ((value >> 32) * 0xBAC710CCULL + (uint32_t) middle + temp) >> 32;
-    return temp + (middle >> 32) + (value >> 32) * 0x68DB8ULL;
+    uint64_t x0 = (uint32_t) value * 0xBAC710CCULL >> 32;
+    uint64_t x1 = (uint32_t) value * 0x68DB8ULL;
+    uint64_t x2 = ((value >> 32) * 0xBAC710CCULL + (uint32_t) x1 + x0) >> 32;
+    return x2 + (x1 >> 32) + (value >> 32) * 0x68DB8ULL;
 #endif
   }
 
