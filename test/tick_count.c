@@ -13,6 +13,8 @@
 int
 main(void)
   {
+    SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
+
     for(uint32_t i = 0;  i < 300;  i++) {
       Sleep(10);
       ULONGLONG t1 = GetTickCount64();
