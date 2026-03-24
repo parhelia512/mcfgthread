@@ -26,10 +26,16 @@
  * we must define and export them. However, Clang requires that the `dllexport`
  * attribute be applied before a function is called, so declare them as early as
  * possible.  */
+#ifdef __cplusplus
+extern "C" {
+#endif
 __MCF_DLLEXPORT void* memcpy(void* __dst, const void* __src, size_t __size);
 __MCF_DLLEXPORT void* memmove(void* __dst, const void* __src, size_t __size);
 __MCF_DLLEXPORT void* memset(void* __dst, int __val, size_t __size);
 __MCF_DLLEXPORT int memcmp(const void* __src, const void* __dst, size_t __size);
+#ifdef __cplusplus
+}  /* extern "C" */
+#endif
 
 #define WIN32_LEAN_AND_MEAN  1
 #define NOMINMAX  1
