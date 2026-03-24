@@ -186,7 +186,7 @@ void
 _MCF_thread_exit(void)
   {
     ExitThread(0);
-    __builtin_unreachable();
+    __MCF_UNREACHABLE;
   }
 
 __MCF_DLLEXPORT
