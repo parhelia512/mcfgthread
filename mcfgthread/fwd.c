@@ -24,8 +24,8 @@ ULONG
 do_format_message(ULONG code, WCHAR* outptr, const WCHAR* end_of_buffer)
   {
     return FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | 255,
-                          __MCF_nullptr, code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                          outptr, (ULONG) (end_of_buffer - outptr), __MCF_nullptr);
+                          nullptr, code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                          outptr, (ULONG) (end_of_buffer - outptr), nullptr);
   }
 
 __MCF_DLLEXPORT
@@ -117,7 +117,7 @@ __MCF_runtime_failure(const char* where)
     EXCEPTION_RECORD record = { .ExceptionCode = 0xC0000602,
                                 .ExceptionFlags = EXCEPTION_NONCONTINUABLE,
                                 .ExceptionAddress = __builtin_return_address(0) };
-    RaiseFailFastException(&record, __MCF_nullptr, 0);
+    RaiseFailFastException(&record, nullptr, 0);
     __builtin_trap();
   }
 

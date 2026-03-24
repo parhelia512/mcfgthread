@@ -137,7 +137,7 @@ int
 __fastcall
 do_pop_dtor(__MCF_dtor_element* elem, _MCF_mutex* mtx, __MCF_dtor_queue* queue, void* dso)
   {
-    _MCF_mutex_lock_slow(mtx, __MCF_nullptr);
+    _MCF_mutex_lock_slow(mtx, nullptr);
     int err = __MCF_dtor_queue_pop(elem, queue, dso);
     _MCF_mutex_unlock_slow(mtx);
     return err;
@@ -185,7 +185,7 @@ __MCF_gthread_initialize_globals(void)
     __MCF_crt_heap = GetProcessHeap();
     __MCF_CHECK(__MCF_crt_heap);
 #ifdef __MCF_DEBUG
-    HeapSetInformation(__MCF_crt_heap, HeapEnableTerminationOnCorruption, __MCF_nullptr, 0);
+    HeapSetInformation(__MCF_crt_heap, HeapEnableTerminationOnCorruption, nullptr, 0);
 #endif
 
     /* Load system DLLs. It's not necessary to call `FreeLibrary()`, as these
@@ -217,7 +217,7 @@ __MCF_gthread_initialize_globals(void)
 
     /* Get a pointer to this named region. Unlike `CreateFileMappingW()`, the
      * view shall not be inherited by child processes.  */
-    void* gmem_base = __MCF_nullptr;
+    void* gmem_base = nullptr;
     size_t gmem_size = 0;
     __MCF_map_view_of_section(gfile, &gmem_base, &gmem_size, false);
     __MCF_ASSERT(gmem_base);
@@ -268,7 +268,7 @@ __MCF_gthread_on_thread_exit(void)
     /* Per-thread atexit callbacks may use TLS, so call them before
      * destructors of thread-local objects.  */
     __MCF_dtor_element elem;
-    while(__MCF_dtor_queue_pop(&elem, self->__atexit_queue, __MCF_nullptr) == 0)
+    while(__MCF_dtor_queue_pop(&elem, self->__atexit_queue, nullptr) == 0)
       __MCF_invoke_cxa_dtor(elem.__dtor, elem.__this);
 
     while(self->__tls_table->__begin) {
@@ -277,8 +277,8 @@ __MCF_gthread_on_thread_exit(void)
       __MCF_tls_element* tls_begin = self->__tls_table->__begin;
       __MCF_tls_element* tls_end = self->__tls_table->__end;
 
-      self->__tls_table->__begin = __MCF_nullptr;
-      self->__tls_table->__end = __MCF_nullptr;
+      self->__tls_table->__begin = nullptr;
+      self->__tls_table->__end = nullptr;
       self->__tls_table->__size_hint = 0;
 
       while(tls_begin != tls_end) {

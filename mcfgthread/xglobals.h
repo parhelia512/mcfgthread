@@ -34,6 +34,11 @@
 #  define __MCF_XGLOBALS_READONLY   const
 #endif
 
+/* Guarantee that `nullptr` is available for C.  */
+#if 0 __MCF_C23(+1) __MCF_CXX11(+1) == 0
+#  define nullptr  __MCF_IPTR_0
+#endif
+
 /* `NTSTATUS`; ntdef.h  */
 typedef LONG NTSTATUS;
 typedef struct _UNICODE_STRING UNICODE_STRING;
@@ -226,11 +231,11 @@ FARPROC
 __MCF_do_lazy_load(FARPROC* out, HMODULE dll, const char* name)
   {
     if(!dll)
-      return __MCF_nullptr;
+      return nullptr;
 
     FARPROC ptr = GetProcAddress(dll, name);
     if(!ptr)
-      return __MCF_nullptr;
+      return nullptr;
 
     __MCF_SET_IF(out, ptr);
     return ptr;
@@ -503,7 +508,7 @@ extern __MCF_crt_xglobals* __MCF_XGLOBALS_READONLY restrict __MCF_g;
 #define __MCF_G(field)     (__MCF_g->field)
 #define __MCF_G_OPT(field)  ((__MCF_g->__self_size >= offsetof(__MCF_crt_xglobals, field)  \
                                                       + sizeof(__MCF_g->field))  \
-                             ? &(__MCF_g->field) : (void*) __MCF_nullptr)
+                             ? &(__MCF_g->field) : (void*) nullptr)
 
 #define __MCF_G_LAZY(name)          (*(__MCF_G(__MCF_LAZY_P_(name))))
 #define __MCF_G_HAS_LAZY(name)       (__MCF_G_OPT(__MCF_LAZY_P_(name)) && __MCF_G(__MCF_LAZY_P_(name)))
@@ -739,7 +744,7 @@ __MCF_XGLOBALS_INLINE
 void
 __MCF_mfree_nonnull(void* ptr)
   {
-    __MCF_ASSERT(ptr != __MCF_nullptr);
+    __MCF_ASSERT(ptr != nullptr);
 #ifdef __MCF_DEBUG
     size_t size = HeapSize(__MCF_crt_heap, 0, ptr);
     __MCF_ASSERT(size != (size_t) -1);
@@ -802,7 +807,7 @@ __MCF_map_view_of_section(HANDLE Section, void** BaseAddress, size_t* ViewSize, 
   {
     HANDLE process = GetCurrentProcess();
     UINT inherit = Inheritable ? 1U : 2U;  /* ViewShare : ViewUnmap */
-    NTSTATUS status = NtMapViewOfSection(Section, process, BaseAddress, 0, 0, __MCF_nullptr,
+    NTSTATUS status = NtMapViewOfSection(Section, process, BaseAddress, 0, 0, nullptr,
                                          (SIZE_T*) ViewSize, inherit, 0, PAGE_READWRITE);
     __MCF_ASSERT(NT_SUCCESS(status));
   }

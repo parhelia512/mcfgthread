@@ -37,7 +37,7 @@ do_win32_thread_routine(LPVOID param)
   {
     __MCF_USING_SEH_HANDLER(__MCF_seh_top);
     thread_init* init = param;
-    _MCF_event_await_change(init->status, thread_init_null, __MCF_nullptr);
+    _MCF_event_await_change(init->status, thread_init_null, nullptr);
     _MCF_thread* thrd = init->thrd;
 
     /* Attach the thread.  */
@@ -66,16 +66,16 @@ _MCF_thread*
 _MCF_thread_new_aligned(_MCF_thread_procedure* proc, size_t align, const void* data_opt, size_t size)
   {
     if(!proc)
-      return __MCF_win32_error_p(ERROR_INVALID_PARAMETER, __MCF_nullptr);
+      return __MCF_win32_error_p(ERROR_INVALID_PARAMETER, nullptr);
 
     if(align & (align - 1))  /* power of two?  */
-      return __MCF_win32_error_p(ERROR_INVALID_PARAMETER, __MCF_nullptr);
+      return __MCF_win32_error_p(ERROR_INVALID_PARAMETER, nullptr);
 
     if(align > __MCF_THREAD_MAX_DATA_ALIGNMENT)
-      return __MCF_win32_error_p(ERROR_NOT_SUPPORTED, __MCF_nullptr);
+      return __MCF_win32_error_p(ERROR_NOT_SUPPORTED, nullptr);
 
     if(size > 0x8000000U - __MCF_THREAD_MAX_DATA_ALIGNMENT)
-      return __MCF_win32_error_p(ERROR_ARITHMETIC_OVERFLOW, __MCF_nullptr);
+      return __MCF_win32_error_p(ERROR_ARITHMETIC_OVERFLOW, nullptr);
 
     /* Allocate and initialize the thread control structure.  */
     thread_init init;
@@ -88,7 +88,7 @@ _MCF_thread_new_aligned(_MCF_thread_procedure* proc, size_t align, const void* d
 
     init.thrd = __MCF_malloc_0(size_request);
     if(!init.thrd)
-      return __MCF_win32_error_p(ERROR_NOT_ENOUGH_MEMORY, __MCF_nullptr);
+      return __MCF_win32_error_p(ERROR_NOT_ENOUGH_MEMORY, nullptr);
 
     _MCF_atomic_store_32_rlx(init.thrd->__nref, 2);
     init.thrd->__proc = proc;
@@ -112,19 +112,19 @@ _MCF_thread_new_aligned(_MCF_thread_procedure* proc, size_t align, const void* d
     }
 
     /* Create a thread and wait for its initialization to finish.  */
-    init.thrd->__handle = CreateThread(__MCF_nullptr, 0, do_win32_thread_routine, &init, 0,
+    init.thrd->__handle = CreateThread(nullptr, 0, do_win32_thread_routine, &init, 0,
                                        (void*) &(init.thrd->__tid));
     if(init.thrd->__handle == NULL) {
       __MCF_mfree_nonnull(init.thrd);
-      return __MCF_nullptr;
+      return nullptr;
     }
 
     _MCF_event_set_slow(init.status, thread_init_waiting);
-    int result = _MCF_event_await_change_slow(init.status, thread_init_waiting, __MCF_nullptr);
+    int result = _MCF_event_await_change_slow(init.status, thread_init_waiting, nullptr);
     if(result == thread_init_cancelled) {
       __MCF_close_handle(init.thrd->__handle);
       __MCF_mfree_nonnull(init.thrd);
-      return __MCF_win32_error_p(init.win32_error, __MCF_nullptr);
+      return __MCF_win32_error_p(init.win32_error, nullptr);
     }
 
     /* Return the initialized thread.  */
@@ -138,7 +138,7 @@ __MCF_thread_attach_foreign(_MCF_thread* thrd)
   {
     __MCF_ASSERT(thrd->__nref[0] == 0);
     __MCF_ASSERT(thrd->__tid == 0);
-    __MCF_ASSERT(thrd->__handle == __MCF_nullptr);
+    __MCF_ASSERT(thrd->__handle == nullptr);
 
     /* Initialize thread identity fields.  */
     thrd->__tid = __MCF_tid();
@@ -170,8 +170,8 @@ _MCF_thread_drop_ref_nonnull(_MCF_thread* thrd)
      * callback queue shall have been cleared upon termination of the associated
      * thread, so they are empty now.  */
     __MCF_close_handle(thrd->__handle);
-    __MCF_ASSERT(thrd->__atexit_queue[0].__prev == __MCF_nullptr);
-    __MCF_ASSERT(thrd->__tls_table[0].__begin == __MCF_nullptr);
+    __MCF_ASSERT(thrd->__atexit_queue[0].__prev == nullptr);
+    __MCF_ASSERT(thrd->__tls_table[0].__begin == nullptr);
 
     if(thrd == __MCF_G_OPT(__thread_oom_self_st)) {
       /* If this is the OOM backup, clear it for reuse.  */
@@ -234,7 +234,7 @@ do_thread_self_slow(void)
        * thread shall block until the other thread frees it.  */
       self = __MCF_G_OPT(__thread_oom_self_st);
       __MCF_CHECK(self);
-      _MCF_mutex_lock_slow(__MCF_G(__thread_oom_mtx), __MCF_nullptr);
+      _MCF_mutex_lock_slow(__MCF_G(__thread_oom_mtx), nullptr);
       __MCF_ASSERT(self->__handle == NULL);
     }
 

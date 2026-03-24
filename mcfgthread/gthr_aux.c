@@ -102,7 +102,7 @@ __MCF_gthr_mutex_relock_callback(intptr_t arg, intptr_t unlocked)
   {
     _MCF_mutex* mtx = (_MCF_mutex*) arg;
     __MCF_ASSERT(unlocked == 0);
-    _MCF_mutex_lock_slow(mtx, __MCF_nullptr);
+    _MCF_mutex_lock_slow(mtx, nullptr);
   }
 
 __MCF_DLLEXPORT
@@ -129,7 +129,7 @@ __MCF_gthr_shared_mutex_relock_shared_callback(intptr_t arg, intptr_t unlocked)
   {
     _MCF_shared_mutex* smtx = (_MCF_shared_mutex*) arg;
     __MCF_ASSERT(unlocked == 0);
-    _MCF_shared_mutex_lock_shared_slow(smtx, __MCF_nullptr);
+    _MCF_shared_mutex_lock_shared_slow(smtx, nullptr);
   }
 
 __MCF_DLLEXPORT
@@ -138,7 +138,7 @@ __MCF_gthr_shared_mutex_relock_exclusive_callback(intptr_t arg, intptr_t unlocke
   {
     _MCF_shared_mutex* smtx = (_MCF_shared_mutex*) arg;
     __MCF_ASSERT(unlocked == 0);
-    _MCF_shared_mutex_lock_exclusive_slow(smtx, __MCF_nullptr);
+    _MCF_shared_mutex_lock_exclusive_slow(smtx, nullptr);
   }
 
 __MCF_DLLEXPORT
@@ -179,7 +179,7 @@ void
 __MCF_gthr_recursive_mutex_relock_callback(intptr_t arg, intptr_t unlocked)
   {
     __MCF_gthr_rc_mutex* rmtx = (__MCF_gthr_rc_mutex*) arg;
-    _MCF_mutex_lock_slow(rmtx->__mutex, __MCF_nullptr);
+    _MCF_mutex_lock_slow(rmtx->__mutex, nullptr);
     __MCF_ASSERT(rmtx->__owner[0] == 0);
     _MCF_atomic_store_32_rlx(rmtx->__owner, __MCF_tid());
     __MCF_ASSERT(unlocked > 0);
@@ -210,12 +210,12 @@ do_gthr_get_thread_record(_MCF_thread* thrd)
   {
     __MCF_gthr_thread_record* rec = _MCF_thread_get_data(thrd);
     if(!rec)
-      return __MCF_nullptr;
+      return nullptr;
 
     /* Check the GUID. As user-defined data are aligned to 16-byte boundaries,
      * there must be at least 16 bytes available.  */
     if(!__MCF_mequal(rec->__magic_guid, __MCF_crt_gthread_guid, 16))
-      return __MCF_nullptr;
+      return nullptr;
 
     /* Assume so. `do_gthread_routine()` is not shared across modules,
      * so we should not check it for uniqueness.  */
@@ -239,10 +239,10 @@ __MCF_gthr_thread_join_v3(_MCF_thread* thrd, void** resp_opt)
   {
     /* Wait for the thread to terminate.  */
     __MCF_ASSERT(thrd->__tid != __MCF_tid());
-    _MCF_thread_wait(thrd, __MCF_nullptr);
+    _MCF_thread_wait(thrd, nullptr);
 
     if(resp_opt) {
-      *resp_opt = __MCF_nullptr;
+      *resp_opt = nullptr;
 
       /* Get the exit code.  */
       __MCF_gthr_thread_record* rec = do_gthr_get_thread_record(thrd);

@@ -18,7 +18,7 @@ _MCF_tls_key_new(__MCF_cxa_dtor_any_ dtor_opt)
   {
     _MCF_tls_key* key = __MCF_malloc_0(sizeof(_MCF_tls_key));
     if(!key)
-      return __MCF_win32_error_p(ERROR_NOT_ENOUGH_MEMORY, __MCF_nullptr);
+      return __MCF_win32_error_p(ERROR_NOT_ENOUGH_MEMORY, nullptr);
 
     /* Initialize the key structure. The returned pointer is assumed to be
      * unique, so its reference count should be initialized to one.  */
@@ -76,15 +76,15 @@ void*
 __MCF_tls_table_get(const __MCF_tls_table* table, const _MCF_tls_key* key)
   {
     if(_MCF_atomic_load_b_rlx(key->__deleted))
-      return __MCF_nullptr;
+      return nullptr;
 
     if(table->__begin == table->__end)
-      return __MCF_nullptr;
+      return nullptr;
 
     /* Search for the given key.  */
     __MCF_tls_element* elem = do_linear_probe_nonempty(table, key);
     if(!elem->__key_opt)
-      return __MCF_nullptr;
+      return nullptr;
 
     __MCF_ASSERT(elem->__key_opt == key);
     return elem->__value_opt;
@@ -95,7 +95,7 @@ int
 __MCF_tls_table_xset(__MCF_tls_table* table, _MCF_tls_key* key, void** old_value_opt,
                      const void* value_opt)
   {
-    __MCF_SET_IF(old_value_opt, __MCF_nullptr);
+    __MCF_SET_IF(old_value_opt, nullptr);
 
     if(_MCF_atomic_load_b_rlx(key->__deleted))
       return __MCF_win32_error_i(ERROR_INVALID_PARAMETER, -1);
