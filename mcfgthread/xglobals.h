@@ -36,7 +36,7 @@
 
 /* Guarantee that `nullptr` is available for C.  */
 #if 0 __MCF_C23(+1) __MCF_CXX11(+1) == 0
-#  define nullptr  __MCF_IPTR_0
+#  define nullptr   ((void*) __MCF_IPTR_0)
 #endif
 
 /* `NTSTATUS`; ntdef.h  */
@@ -508,7 +508,7 @@ extern __MCF_crt_xglobals* __MCF_XGLOBALS_READONLY restrict __MCF_g;
 #define __MCF_G(field)     (__MCF_g->field)
 #define __MCF_G_OPT(field)  ((__MCF_g->__self_size >= offsetof(__MCF_crt_xglobals, field)  \
                                                       + sizeof(__MCF_g->field))  \
-                             ? &(__MCF_g->field) : (void*) nullptr)
+                             ? &(__MCF_g->field) : nullptr)
 
 #define __MCF_G_LAZY(name)          (*(__MCF_G(__MCF_LAZY_P_(name))))
 #define __MCF_G_HAS_LAZY(name)       (__MCF_G_OPT(__MCF_LAZY_P_(name)) && __MCF_G(__MCF_LAZY_P_(name)))
