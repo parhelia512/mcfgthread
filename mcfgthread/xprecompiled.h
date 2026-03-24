@@ -22,6 +22,10 @@
 #  define __MCF_DLLEXPORT
 #endif
 
+/* When inline functions are compiled as external definitions, the definitions
+ * should be fully visible.  */
+#define __MCF_EXPAND_INLINE_DEFINITIONS   1
+
 /* When building the DLL, GCC may make implicit calls to these functions, so
  * we must define and export them. However, Clang requires that the `dllexport`
  * attribute be applied before a function is called, so declare them as early as
@@ -45,7 +49,5 @@ __MCF_DLLEXPORT int memcmp(const void* __src, const void* __dst, size_t __size);
 #  define _WIN32_WINNT  0x0601
 #endif
 #include <windows.h>
-
-#define __MCF_EXPAND_INLINE_DEFINITIONS   1
 
 #endif  /* __MCFGTHREAD_XPRECOMPILED_  */
