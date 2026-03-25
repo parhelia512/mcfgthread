@@ -206,7 +206,7 @@ do_gthread_routine(_MCF_thread* thrd)
 
 static inline
 __MCF_gthr_thread_record*
-do_gthr_get_thread_record(_MCF_thread* thrd)
+do_get_record(_MCF_thread* thrd)
   {
     __MCF_gthr_thread_record* rec = _MCF_thread_get_data(thrd);
     if(!rec)
@@ -245,7 +245,7 @@ __MCF_gthr_thread_join_v3(_MCF_thread* thrd, void** resp_opt)
       *resp_opt = nullptr;
 
       /* Get the exit code.  */
-      __MCF_gthr_thread_record* rec = do_gthr_get_thread_record(thrd);
+      __MCF_gthr_thread_record* rec = do_get_record(thrd);
       if(rec)
         *resp_opt = rec->__arg_or_result;
     }
@@ -259,7 +259,7 @@ void
 __MCF_gthr_thread_exit_v3(void* resp)
   {
     /* Set the exit code.  */
-    __MCF_gthr_thread_record* rec = do_gthr_get_thread_record(_MCF_thread_self());
+    __MCF_gthr_thread_record* rec = do_get_record(_MCF_thread_self());
     if(rec)
       rec->__arg_or_result = resp;
 
