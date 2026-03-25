@@ -39,7 +39,7 @@ once_do_it(void* add)
     resource = old + (int)(intptr_t) add;
 
     NS::this_thread::sleep_for(NS::chrono::milliseconds(10));
-    ::fprintf(stderr, "thread %d done\n", (int) ::_MCF_thread_self_tid());
+    ::fprintf(stderr, "thread %d done\n", ::__MCF_tid());
 
 #if defined __MCF_M_X8664_ASM
       register int64_t dummy __asm__("rsi") = 0x123456789abcdef;
@@ -70,7 +70,7 @@ thread_proc()
     }
     catch(...) {  }
 
-    ::fprintf(stderr, "thread %d quitting\n", (int) ::_MCF_thread_self_tid());
+    ::fprintf(stderr, "thread %d quitting\n", ::__MCF_tid());
   }
 
 int

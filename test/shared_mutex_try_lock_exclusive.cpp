@@ -46,7 +46,7 @@ thread_proc()
         NS::this_thread::sleep_for(NS::chrono::milliseconds(10));
     }
 
-    ::fprintf(stderr, "thread %d quitting\n", (int) ::_MCF_thread_self_tid());
+    ::fprintf(stderr, "thread %d quitting\n", ::__MCF_tid());
   }
 
 int

@@ -35,7 +35,7 @@ once_do_it(int add)
     resource = old + add;
 
     NS::this_thread::sleep_for(NS::chrono::milliseconds(100));
-    ::fprintf(stderr, "thread %d done\n", (int) ::_MCF_thread_self_tid());
+    ::fprintf(stderr, "thread %d done\n", ::__MCF_tid());
   }
 
 static
@@ -45,7 +45,7 @@ thread_proc()
     ::_MCF_sem_wait(&start, nullptr);
 
     NS::call_once(once, once_do_it, 1);
-    ::fprintf(stderr, "thread %d quitting\n", (int) ::_MCF_thread_self_tid());
+    ::fprintf(stderr, "thread %d quitting\n", ::__MCF_tid());
   }
 
 int

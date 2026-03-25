@@ -23,7 +23,7 @@ static
 void
 tls_destructor(int* ptr)
   {
-    ::fprintf(stderr, "thread %d tls_destructor\n", (int) ::_MCF_thread_self_tid());
+    ::fprintf(stderr, "thread %d tls_destructor\n", ::__MCF_tid());
     _MCF_atomic_xadd_32_rlx(ptr, 1);
   }
 
@@ -43,7 +43,7 @@ thread_proc()
     // Add a resource.
     tss_ptr.reset(&resource);
 
-    ::fprintf(stderr, "thread %d quitting\n", (int) ::_MCF_thread_self_tid());
+    ::fprintf(stderr, "thread %d quitting\n", ::__MCF_tid());
   }
 #endif
 
