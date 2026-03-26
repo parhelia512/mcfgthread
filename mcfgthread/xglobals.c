@@ -220,12 +220,12 @@ __MCF_gthread_initialize_globals(void)
     void* gmem_base = nullptr;
     size_t gmem_size = 0;
     __MCF_map_view_of_section(gfile, &gmem_base, &gmem_size, false);
-    __MCF_ASSERT(gmem_base);
+    __MCF_CHECK(gmem_base);
     __MCF_g = gmem_base;
 
-    if(__MCF_G(__self_ptr)) {
+    if(__MCF_g->__self_ptr) {
       /* Reuse the existent region and close excess handles.  */
-      __MCF_g = __MCF_G(__self_ptr);
+      __MCF_g = __MCF_g->__self_ptr;
       __MCF_unmap_view_of_section(gmem_base);
       __MCF_close_handle(gfile);
       return;
@@ -233,8 +233,8 @@ __MCF_gthread_initialize_globals(void)
 
     /* The region is new, so initialize it.  */
     __MCF_CHECK(gmem_size >= sizeof(__MCF_crt_xglobals));
-    __MCF_G(__self_ptr) = __MCF_g;
-    __MCF_G(__self_size) = sizeof(__MCF_crt_xglobals);
+    __MCF_g->__self_ptr = __MCF_g;
+    __MCF_g->__self_size = sizeof(__MCF_crt_xglobals);
 
     /* Allocate a TLS slot for this library.  */
     __MCF_G(__tls_index) = TlsAlloc();
