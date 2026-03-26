@@ -198,8 +198,12 @@ __MCF_gthread_initialize_globals(void)
 
     /* Generate the unique name for this process.  */
     static WCHAR gnbuffer[] = L"Local\\__MCF_crt_xglobals_*?pid???_#?cookie????????";
+    static UNICODE_STRING gname = __MCF_NT_STRING_INIT(gnbuffer);
+    static OBJECT_ATTRIBUTES gattrs = { .Length = sizeof(gattrs), .ObjectName = &gname,
+                                        .Attributes = 0x00A0 /* OBJ_OPENIF | OBJ_EXCLUSIVE */ };
+    gattrs.RootDirectory = __MCF_get_directory_for_named_objects();
+
     const uint32_t pid = (uint32_t) __MCF_pid();
-    UNICODE_STRING gname = __MCF_NT_STRING_INIT(gnbuffer);
     __MCF_ASSERT(gnbuffer[25] == L'*');
     do_hex_encode(gnbuffer + 25, 8, pid, L"0123456789ABCDEF");
     __MCF_ASSERT(gnbuffer[34] == L'#');
@@ -207,32 +211,23 @@ __MCF_gthread_initialize_globals(void)
     __MCF_ASSERT(gnbuffer[50] == 0);
 
     /* Allocate or open storage for global data. We are in the DLL main routine,
-     * so locking is not necessary.  */
-    OBJECT_ATTRIBUTES gattrs = { .Length = sizeof(gattrs),
-                                 .Attributes = 0x00A0 /* OBJ_OPENIF | OBJ_EXCLUSIVE */,
-                                 .RootDirectory = __MCF_get_directory_for_named_objects(),
-                                 .ObjectName = &gname };
+     * so locking is not necessary. Unlike `CreateFileMappingW()`, the handle
+     * and view shall not be inherited by child processes.  */
     HANDLE gfile = __MCF_create_named_section(&gattrs, sizeof(__MCF_crt_xglobals));
     __MCF_CHECK(gfile);
-
-    /* Get a pointer to this named region. Unlike `CreateFileMappingW()`, the
-     * view shall not be inherited by child processes.  */
-    void* gmem_base = nullptr;
-    size_t gmem_size = 0;
-    __MCF_map_view_of_section(gfile, &gmem_base, &gmem_size, false);
-    __MCF_CHECK(gmem_base);
-    __MCF_g = gmem_base;
+    __MCF_g = __MCF_map_view_of_section(gfile, false);
+    __MCF_CHECK(__MCF_g);
 
     if(__MCF_g->__self_ptr) {
       /* Reuse the existent region and close excess handles.  */
+      void* new_base = __MCF_g;
       __MCF_g = __MCF_g->__self_ptr;
-      __MCF_unmap_view_of_section(gmem_base);
+      __MCF_unmap_view_of_section(new_base);
       __MCF_close_handle(gfile);
       return;
     }
 
     /* The region is new, so initialize it.  */
-    __MCF_CHECK(gmem_size >= sizeof(__MCF_crt_xglobals));
     __MCF_g->__self_ptr = __MCF_g;
     __MCF_g->__self_size = sizeof(__MCF_crt_xglobals);
 

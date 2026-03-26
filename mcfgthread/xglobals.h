@@ -806,14 +806,17 @@ __MCF_close_handle(HANDLE Handle)
   }
 
 __MCF_ALWAYS_INLINE
-void
-__MCF_map_view_of_section(HANDLE Section, void** BaseAddress, size_t* ViewSize, bool Inheritable)
+void*
+__MCF_map_view_of_section(HANDLE Section, bool Inheritable)
   {
-    HANDLE process = GetCurrentProcess();
+    void* address = nullptr;
+    SIZE_T size = 0;
     UINT inherit = Inheritable ? 1U : 2U;  /* ViewShare : ViewUnmap */
-    NTSTATUS status = NtMapViewOfSection(Section, process, BaseAddress, 0, 0, nullptr,
-                                         (SIZE_T*) ViewSize, inherit, 0, PAGE_READWRITE);
-    __MCF_ASSERT(NT_SUCCESS(status));
+    NTSTATUS status = NtMapViewOfSection(Section, GetCurrentProcess(), &address, 0, 0,
+                                         nullptr, &size, inherit, 0, PAGE_READWRITE);
+    if(!NT_SUCCESS(status))
+      return __MCF_win32_ntstatus_p(status, nullptr);
+    return address;
   }
 
 __MCF_ALWAYS_INLINE
