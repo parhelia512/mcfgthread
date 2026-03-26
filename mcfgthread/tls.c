@@ -81,7 +81,6 @@ __MCF_tls_table_get(const __MCF_tls_table* table, const _MCF_tls_key* key)
     if(table->__begin == table->__end)
       return nullptr;
 
-    /* Search for the given key.  */
     __MCF_tls_element* elem = do_linear_probe_nonempty(table, key);
     if(!elem->__key_opt)
       return nullptr;
@@ -153,7 +152,6 @@ __MCF_tls_table_xset(__MCF_tls_table* table, _MCF_tls_key* key, void** old_value
         __MCF_mfree_nonnull(old_begin);
     }
 
-    /* Search for the given key.  */
     __MCF_tls_element* elem = do_linear_probe_nonempty(table, key);
     if(!elem->__key_opt) {
       /* If `key` is not found and a null pointer is to be set, don't
