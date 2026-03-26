@@ -779,7 +779,9 @@ __MCF_create_named_section(OBJECT_ATTRIBUTES* Attributes, LONGLONG MaximumSize)
     LARGE_INTEGER size = { .QuadPart = MaximumSize };
     NTSTATUS status = NtCreateSection(&handle, SECTION_ALL_ACCESS, Attributes, &size,
                                       PAGE_READWRITE, SEC_COMMIT, NULL);
-    return NT_SUCCESS(status) ? handle : __MCF_win32_ntstatus_p(status, NULL);
+    if(!NT_SUCCESS(status))
+      return __MCF_win32_ntstatus_p(status, NULL);
+    return handle;
   }
 
 __MCF_ALWAYS_INLINE
@@ -787,10 +789,12 @@ HANDLE
 __MCF_duplicate_handle(HANDLE SourceHandle)
   {
     HANDLE handle;
-    HANDLE process = GetCurrentProcess();
-    NTSTATUS status = NtDuplicateObject(process, SourceHandle, process, &handle, 0, 0,
+    NTSTATUS status = NtDuplicateObject(GetCurrentProcess(), SourceHandle,
+                                        GetCurrentProcess(), &handle, 0, 0,
                                         DUPLICATE_SAME_ACCESS);
-    return NT_SUCCESS(status) ? handle : __MCF_win32_ntstatus_p(status, NULL);
+    if(!NT_SUCCESS(status))
+      return __MCF_win32_ntstatus_p(status, NULL);
+    return handle;
   }
 
 __MCF_ALWAYS_INLINE
@@ -814,10 +818,9 @@ __MCF_map_view_of_section(HANDLE Section, void** BaseAddress, size_t* ViewSize, 
 
 __MCF_ALWAYS_INLINE
 void
-__MCF_unmap_view_of_section(void* BaseAddress)
+__MCF_unmap_view_of_section(void* Address)
   {
-    HANDLE process = GetCurrentProcess();
-    NTSTATUS status = NtUnmapViewOfSection(process, BaseAddress);
+    NTSTATUS status = NtUnmapViewOfSection(GetCurrentProcess(), Address);
     __MCF_ASSERT(NT_SUCCESS(status));
   }
 
@@ -842,7 +845,8 @@ __MCF_ALWAYS_INLINE
 int
 __MCF_keyed_event_wait(const void* Key, const __MCF_winnt_timeout* Timeout)
   {
-    NTSTATUS status = NtWaitForKeyedEvent(NULL, (PVOID) Key, false, (LARGE_INTEGER*) &(Timeout->__li));
+    NTSTATUS status = NtWaitForKeyedEvent(NULL, (PVOID) Key, false,
+                                          (LARGE_INTEGER*) &(Timeout->__li));
     __MCF_ASSERT(NT_SUCCESS(status));
     return (status == STATUS_WAIT_0) ? 0 : -1;
   }
@@ -851,21 +855,23 @@ __MCF_ALWAYS_INLINE
 int
 __MCF_keyed_event_signal(const void* Key, const __MCF_winnt_timeout* Timeout)
   {
-    NTSTATUS status = NtReleaseKeyedEvent(NULL, (PVOID) Key, false, (LARGE_INTEGER*) &(Timeout->__li));
+    NTSTATUS status = NtReleaseKeyedEvent(NULL, (PVOID) Key, false,
+                                          (LARGE_INTEGER*) &(Timeout->__li));
     __MCF_ASSERT(NT_SUCCESS(status));
     return (status == STATUS_WAIT_0) ? 0 : -1;
   }
 
 __MCF_ALWAYS_INLINE
 int
-__MCF_show_service_notification(const UNICODE_STRING* caption, ULONG options, const UNICODE_STRING* text)
+__MCF_show_service_notification(const UNICODE_STRING* caption, const UNICODE_STRING* text, ULONG options)
   {
     ULONG response = 0;
     ULONG_PTR params[4] = { (ULONG_PTR) text, (ULONG_PTR) caption, options, 0 };
-    NTSTATUS status = NtRaiseHardError(0x50000018 /* SERVICE_NOTIFICATION | OVERRIDE_ERRORMODE */,
-                                       ARRAYSIZE(params), 0x03, params,
+    NTSTATUS status = NtRaiseHardError(0x50000018, ARRAYSIZE(params), 0x03, params,
                                        1 /* OptionOk */, &response);
-    return NT_SUCCESS(status) ? (int) response : -1;
+    if(!NT_SUCCESS(status))
+      return -1;
+    return (int) response;
   }
 
 #endif  /* __MCFGTHREAD_XGLOBALS_  */

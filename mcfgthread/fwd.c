@@ -108,7 +108,7 @@ __MCF_runtime_failure(const char* where)
     /* If we are in a DLL entry-point function or a TLS callback, it is not safe
      * to call `MessageBoxW()` from USER32.DLL, so request CSRSS.EXE to display
      * the message box for us.  */
-    __MCF_show_service_notification(&caption, MB_OK | MB_ICONSTOP, &text);
+    __MCF_show_service_notification(&caption, &text, MB_OK | MB_ICONSTOP);
 
     /* #define STATUS_FAIL_FAST_EXCEPTION   0xC0000602L
      * {Fail Fast Exception}
