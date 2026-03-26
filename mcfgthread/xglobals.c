@@ -238,7 +238,7 @@ __MCF_gthread_initialize_globals(void)
 
     /* Allocate a TLS slot for this library.  */
     __MCF_G(__tls_index) = TlsAlloc();
-    __MCF_CHECK(__MCF_G(__tls_index) != UINT32_MAX);
+    __MCF_CHECK(__MCF_G(__tls_index) != TLS_OUT_OF_INDEXES);
 
     /* Perform lazy binding for newer functions.  */
     __MCF_G_SET_LAZY(__MCF_crt_kernel32, GetSystemTimePreciseAsFileTime);  /* win8 */
