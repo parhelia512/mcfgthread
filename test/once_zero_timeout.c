@@ -7,6 +7,7 @@
 
 #include "../mcfgthread/once.h"
 #include "../mcfgthread/thread.h"
+#undef NDEBUG
 #include <assert.h>
 #include <stdio.h>
 

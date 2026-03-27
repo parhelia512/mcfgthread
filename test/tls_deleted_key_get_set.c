@@ -6,6 +6,7 @@
  * to this file.  */
 
 #include "../mcfgthread/thread.h"
+#undef NDEBUG
 #include <assert.h>
 #include <windows.h>
 

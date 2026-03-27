@@ -7,6 +7,7 @@
 
 #define __MCF_EXPAND_INLINE_DEFINITIONS 1
 #include "../mcfgthread/mutex.h"
+#undef NDEBUG
 #include <assert.h>
 #include <stdio.h>
 

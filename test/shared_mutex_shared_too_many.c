@@ -6,6 +6,7 @@
  * to this file.  */
 
 #include "../mcfgthread/shared_mutex.h"
+#undef NDEBUG
 #include <assert.h>
 #include <stdio.h>
 

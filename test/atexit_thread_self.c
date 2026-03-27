@@ -8,6 +8,7 @@
 #include "../mcfgthread/cxa.h"
 #include "../mcfgthread/thread.h"
 #include "../mcfgthread/exit.h"
+#undef NDEBUG
 #include <assert.h>
 #include <stdio.h>
 

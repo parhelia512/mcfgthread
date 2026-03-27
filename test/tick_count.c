@@ -7,6 +7,7 @@
 
 #include "../mcfgthread/clock.h"
 #include <windows.h>
+#undef NDEBUG
 #include <assert.h>
 #include <stdio.h>
 

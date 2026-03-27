@@ -7,6 +7,7 @@
 
 #include "../mcfgthread/thread.h"
 #include "version.h"
+#undef NDEBUG
 #include <assert.h>
 #include <windows.h>
 

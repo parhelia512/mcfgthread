@@ -6,6 +6,7 @@
  * to this file.  */
 
 #include "../mcfgthread/libcxx.h"
+#undef NDEBUG
 #include <assert.h>
 
 int

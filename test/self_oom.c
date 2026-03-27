@@ -15,6 +15,7 @@ int main(void) { return 77;  }
 #define __MCF_XGLOBALS_INLINE  __MCF_GNU_INLINE
 #define __MCF_XGLOBALS_READONLY
 #include "../mcfgthread/xglobals.h"
+#undef NDEBUG
 #include <assert.h>
 #include <stdio.h>
 

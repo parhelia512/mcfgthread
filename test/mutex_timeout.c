@@ -8,6 +8,7 @@
 #include "../mcfgthread/mutex.h"
 #include "../mcfgthread/clock.h"
 #include "../mcfgthread/thread.h"
+#undef NDEBUG
 #include <assert.h>
 #include <stdio.h>
 

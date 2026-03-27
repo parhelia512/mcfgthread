@@ -8,6 +8,7 @@
 #include "../mcfgthread/c11.h"
 #include "../mcfgthread/sem.h"
 #include <windows.h>
+#undef NDEBUG
 #include <assert.h>
 #include <stdio.h>
 

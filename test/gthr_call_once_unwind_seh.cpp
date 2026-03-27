@@ -11,6 +11,7 @@ int main(void) { return 77;  }
 
 #include "../mcfgthread/cxx11.hpp"
 #include "../mcfgthread/sem.h"
+#undef NDEBUG
 #include <assert.h>
 #include <stdio.h>
 #include <vector>

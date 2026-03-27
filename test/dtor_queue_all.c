@@ -6,6 +6,7 @@
  * to this file.  */
 
 #include "../mcfgthread/dtor_queue.h"
+#undef NDEBUG
 #include <assert.h>
 #include <stdio.h>
 

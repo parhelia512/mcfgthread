@@ -8,6 +8,7 @@
 #include "../mcfgthread/cxx11.hpp"
 #include "../mcfgthread/clock.h"
 #include "../mcfgthread/thread.h"
+#undef NDEBUG
 #include <assert.h>
 #include <stdio.h>
 

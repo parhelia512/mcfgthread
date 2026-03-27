@@ -7,6 +7,7 @@
 
 #include "../mcfgthread/c11.h"
 #include "../mcfgthread/exit.h"
+#undef NDEBUG
 #include <assert.h>
 #include <stdio.h>
 

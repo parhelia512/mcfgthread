@@ -7,6 +7,7 @@
 
 #define _POSIX_C_SOURCE 200809
 #include "../mcfgthread/clock.h"
+#undef NDEBUG
 #include <assert.h>
 #include <stdio.h>
 #include <time.h>

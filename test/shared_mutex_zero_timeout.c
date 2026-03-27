@@ -8,6 +8,7 @@
 #include "../mcfgthread/shared_mutex.h"
 #include "../mcfgthread/thread.h"
 #include "../mcfgthread/sem.h"
+#undef NDEBUG
 #include <assert.h>
 #include <stdio.h>
 

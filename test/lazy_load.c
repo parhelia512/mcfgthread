@@ -13,6 +13,7 @@ int main(void) { return 77;  }
 #include <windows.h>
 #include "../mcfgthread/xglobals.h"
 #include <stdio.h>
+#undef NDEBUG
 #include <assert.h>
 
 int

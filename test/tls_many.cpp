@@ -7,6 +7,7 @@
 
 #include "../mcfgthread/cxx11.hpp"
 #include "../mcfgthread/sem.h"
+#undef NDEBUG
 #include <assert.h>
 #include <stdio.h>
 #include <deque>

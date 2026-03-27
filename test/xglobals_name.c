@@ -15,6 +15,7 @@ int main(void) { return 77;  }
 #include <ntstatus.h>
 #include <stdbool.h>
 #include <stdio.h>
+#undef NDEBUG
 #include <assert.h>
 
 extern HMODULE __MCF_crt_ntdll;
