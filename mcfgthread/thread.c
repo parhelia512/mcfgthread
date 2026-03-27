@@ -67,14 +67,11 @@ _MCF_thread_new_aligned(_MCF_thread_procedure* proc, size_t align, const void* d
   {
     if(!proc)
       return __MCF_win32_error_p(ERROR_INVALID_PARAMETER, nullptr);
-
-    if(align & (align - 1))  /* power of two?  */
+    else if(align & (align - 1))  /* power of two?  */
       return __MCF_win32_error_p(ERROR_INVALID_PARAMETER, nullptr);
-
-    if(align > __MCF_THREAD_MAX_DATA_ALIGNMENT)
+    else if(align > __MCF_THREAD_MAX_DATA_ALIGNMENT)
       return __MCF_win32_error_p(ERROR_NOT_SUPPORTED, nullptr);
-
-    if(size > 0x8000000U - __MCF_THREAD_MAX_DATA_ALIGNMENT)
+    else if(size > 0x8000000U - __MCF_THREAD_MAX_DATA_ALIGNMENT)
       return __MCF_win32_error_p(ERROR_ARITHMETIC_OVERFLOW, nullptr);
 
     size_t real_align = _MCF_maxz(__MCF_THREAD_DATA_ALIGNMENT, align);
@@ -89,15 +86,11 @@ _MCF_thread_new_aligned(_MCF_thread_procedure* proc, size_t align, const void* d
     if(!init.thrd)
       return __MCF_win32_error_p(ERROR_NOT_ENOUGH_MEMORY, nullptr);
 
-    _MCF_atomic_store_32_rlx(init.thrd->__nref, 2);
-    init.thrd->__proc = proc;
-
     if(size != 0) {
       init.thrd->__data_opt = init.thrd + 1;
-
-      /* Adjust `__data_opt` for over-aligned types. If we have over-allocated
-       * memory, give back some. Errors are ignored.  */
       if(size_need != size_request) {
+        /* Adjust `__data_opt` for over-aligned types. If we have over-allocated
+         * memory, give back some. Errors are ignored.  */
         init.thrd->__data_opt = (void*) ((((uintptr_t) init.thrd->__data_opt - 1) | (real_align - 1)) + 1);
 
         size_request = (uintptr_t) init.thrd->__data_opt + size - (uintptr_t) init.thrd;
@@ -111,6 +104,8 @@ _MCF_thread_new_aligned(_MCF_thread_procedure* proc, size_t align, const void* d
     }
 
     /* Create a thread and wait for its initialization to finish.  */
+    _MCF_atomic_store_32_rlx(init.thrd->__nref, 2);
+    init.thrd->__proc = proc;
     init.thrd->__handle = CreateThread(nullptr, 0, do_win32_thread_routine, &init, 0,
                                        (void*) &(init.thrd->__tid));
     if(init.thrd->__handle == NULL) {
