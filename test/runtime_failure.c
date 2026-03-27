@@ -14,14 +14,13 @@ int
 main(void)
   {
     static const char env_name[] = "_MCF_RUNTIME_FAILURE_TEST_ERROR";
-
-    fprintf(stderr,
-            "To run this test, set the environment variable `%s` to a Windows error code.\n",
-            env_name);
-
     const char* env_val = getenv(env_name);
-    if(!env_val || !*env_val)
+    if(!env_val || !*env_val) {
+      fprintf(stderr,
+              "To run this test, set the environment variable `%s` to a Windows error code.\n",
+              env_name);
       return 77;  // skip
+    }
 
     SetLastError((DWORD) strtol(env_val, NULL, 10));
     __MCF_CHECK(false);

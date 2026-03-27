@@ -17,6 +17,7 @@ EXPORTS
   GetModuleFileNameW@12@
   GetProcAddress@8@
   GetProcessHeap@0@
+  GetStdHandle@4@
   GetSystemInfo@4@
   GetSystemTimeAsFileTime@4@
   GetThreadPriority@4@
@@ -40,3 +41,4 @@ EXPORTS
   TlsGetValue@4@
   TlsSetValue@8@
   VirtualProtect@16@
+  WriteConsoleW@20@

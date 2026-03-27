@@ -105,6 +105,15 @@ __MCF_runtime_failure(const char* where)
       text.Length = (USHORT) ((UINT_PTR) sptr - (UINT_PTR) text.Buffer);
     }
 
+    /* If this process has a console, write the message directly into it.
+     * Errors are ignored.  */
+    HANDLE console = GetStdHandle(STD_ERROR_HANDLE);
+    if((console != INVALID_HANDLE_VALUE) && (console != NULL)) {
+      DWORD nwritten;
+      WriteConsoleW(console, text.Buffer, text.Length / sizeof(WCHAR), &nwritten, nullptr);
+      (void) nwritten;
+    }
+
     /* If we are in a DLL entry-point function or a TLS callback, it is not safe
      * to call `MessageBoxW()` from USER32.DLL, so request CSRSS.EXE to display
      * the message box for us.  */
