@@ -15,6 +15,7 @@
 #include "dtor_queue.h"
 #include <minwindef.h>
 #include <winnt.h>
+#include <ntstatus.h>
 #include <winerror.h>
 #include <sysinfoapi.h>
 #include <libloaderapi.h>
@@ -870,7 +871,8 @@ __MCF_show_service_notification(const UNICODE_STRING* caption, const UNICODE_STR
   {
     ULONG response = 0;
     ULONG_PTR params[4] = { (ULONG_PTR) text, (ULONG_PTR) caption, options, 0 };
-    NTSTATUS status = NtRaiseHardError(0x50000018, ARRAYSIZE(params), 0x03, params,
+    NTSTATUS status = NtRaiseHardError(STATUS_SERVICE_NOTIFICATION,
+                                       ARRAYSIZE(params), 0x03, params,
                                        1 /* OptionOk */, &response);
     if(!NT_SUCCESS(status))
       return -1;
