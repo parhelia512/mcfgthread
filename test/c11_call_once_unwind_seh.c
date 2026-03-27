@@ -8,6 +8,7 @@
 #include "../mcfgthread/c11.h"
 #include "../mcfgthread/sem.h"
 #include <windows.h>
+#include <ntstatus.h>
 #undef NDEBUG
 #include <assert.h>
 #include <stdio.h>
@@ -26,7 +27,7 @@ unwind_done(EXCEPTION_RECORD* rec, PVOID estab_frame, CONTEXT* ctx, PVOID disp_c
     (void) ctx;
     (void) disp_ctx;
 
-    if(rec->ExceptionCode == 0xC0000027)  // STATUS_UNWIND
+    if(rec->ExceptionCode == (DWORD) STATUS_UNWIND)
       ExitThread(0);
 
     return ExceptionContinueSearch;
