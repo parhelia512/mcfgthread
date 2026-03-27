@@ -74,8 +74,8 @@ _MCF_thread_new_aligned(_MCF_thread_procedure* proc, size_t align, const void* d
     else if(size > 0x8000000U - __MCF_THREAD_MAX_DATA_ALIGNMENT)
       return __MCF_win32_error_p(ERROR_ARITHMETIC_OVERFLOW, nullptr);
 
-    size_t real_align = _MCF_maxz(__MCF_THREAD_DATA_ALIGNMENT, align);
     size_t size_need = sizeof(__MCF_thread_base) + size;
+    size_t real_align = _MCF_maxz(__MCF_THREAD_DATA_ALIGNMENT, align);
     size_t size_request = size_need + real_align - MEMORY_ALLOCATION_ALIGNMENT;
     __MCF_ASSERT(size_need <= size_request);
 
