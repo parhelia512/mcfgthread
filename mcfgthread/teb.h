@@ -78,7 +78,7 @@ __MCF_teb_store_8(uint32_t __offset, int8_t __value)
     *(int8_t __seg_fs*) __offset = __value;
 #  else
     __asm__ volatile ("fs; .insn 0x88, %0, %a1"  /* 88 := mov R/M8, R8 */
-        : : "q"(__value), "Ts"(__offset) : "memory");
+        : : "r"(__value), "Ts"(__offset) : "memory");
 #  endif
 #elif defined __MCF_M_ARM64_ASM
     register char* __teb __asm__("x18");
