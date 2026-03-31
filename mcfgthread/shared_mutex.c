@@ -35,7 +35,7 @@ do_lock_common(_MCF_shared_mutex* smtx, bool shared, const int64_t* timeout_opt)
         if(_MCF_atomic_cmpxchg_weak_pptr_acq(smtx, &old, &new))
           return 0;
       }
-      else if(!shared && old.__nshare == 0) {
+      else if(!shared && (old.__nshare == 0)) {
         /* The mutex is not locked, so grant exclusive access.  */
         new.__nshare = 0x3FFFU;
         new.__nsleep = old.__nsleep;
