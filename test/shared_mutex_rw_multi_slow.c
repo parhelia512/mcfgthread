@@ -5,6 +5,7 @@
  * LICENSE.TXT as a whole. The GCC Runtime Library Exception applies
  * to this file.  */
 
+#define __MCF_EXPAND_INLINE_DEFINITIONS 0
 #include "../mcfgthread/shared_mutex.h"
 #include "../mcfgthread/thread.h"
 #include "../mcfgthread/sem.h"
@@ -29,14 +30,14 @@ reader_thread_proc(_MCF_thread* self)
     _MCF_sem_wait(&start, NULL);
 
     for(uint32_t i = 0; i < NITER;  ++i) {
-      int r = _MCF_shared_mutex_lock_shared(&mutex, NULL);
+      int r = _MCF_shared_mutex_lock_shared_slow(&mutex, NULL);
       assert(r == 0);
 
       /* Check resources are equal.  */
       int t1 = res1;
       SwitchToThread();
       assert(t1 == res2);
-      _MCF_shared_mutex_unlock(&mutex);
+      _MCF_shared_mutex_unlock_slow(&mutex);
 
       //fprintf(stderr, "R    thread %d\n", __MCF_tid());
       SwitchToThread();
@@ -52,7 +53,7 @@ writer_thread_proc(_MCF_thread* self)
     _MCF_sem_wait(&start, NULL);
 
     for(uint32_t i = 0; i < NITER;  ++i) {
-      int r = _MCF_shared_mutex_lock_exclusive(&mutex, NULL);
+      int r = _MCF_shared_mutex_lock_exclusive_slow(&mutex, NULL);
       assert(r == 0);
 
       /* Add resources.  */
@@ -60,7 +61,7 @@ writer_thread_proc(_MCF_thread* self)
       SwitchToThread();
       res2 ++;
       assert(res1 == res2);
-      _MCF_shared_mutex_unlock(&mutex);
+      _MCF_shared_mutex_unlock_slow(&mutex);
 
       //fprintf(stderr, "  W  thread %d\n", __MCF_tid());
       SwitchToThread();
