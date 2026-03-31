@@ -547,6 +547,12 @@ __asm__ (
 );
 #endif
 
+/* If the image subsystem version is set to 6.3+, Windows requires that the
+ * security cookie shall exist and shall be initialized to a constant value
+ * when the image is loaded. Otherwise the system will reject the image with
+ * `STATUS_INVALID_IMAGE_FORMAT`.  */
+__MCF_ALIGNED(64) UINT_PTR __security_cookie = __MCF_64_32(0x2B992DDFA232, 0xBB40E64E);
+
 struct _IMAGE_LOAD_CONFIG_DIRECTORY_10_0_26100_7175
   {
     DWORD Size;
@@ -607,6 +613,7 @@ const _load_config_used __MCF_CRT_RDATA =
   {
     .Size = sizeof(_load_config_used),
     .DependentLoadFlags = LOAD_LIBRARY_SEARCH_SYSTEM32,
+    .SecurityCookie = (ULONG_PTR) &__security_cookie,
 #if defined __MCF_M_X8632
     .SEHandlerTable = (ULONG_PTR) __MCF_i386_se_handler_table,
     .SEHandlerCount = (ULONG_PTR) __MCF_i386_se_handler_count,
