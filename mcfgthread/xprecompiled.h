@@ -5,9 +5,6 @@
  * LICENSE.TXT as a whole. The GCC Runtime Library Exception applies
  * to this file.  */
 
-#ifndef __MCFGTHREAD_XPRECOMPILED_
-#define __MCFGTHREAD_XPRECOMPILED_
-
 #include "version.h"
 #include <stddef.h>
 #include <stdint.h>
@@ -49,5 +46,3 @@ __MCF_DLLEXPORT int memcmp(const void* __src, const void* __dst, size_t __size);
 #  define _WIN32_WINNT  0x0601
 #endif
 #include <windows.h>
-
-#endif  /* __MCFGTHREAD_XPRECOMPILED_  */

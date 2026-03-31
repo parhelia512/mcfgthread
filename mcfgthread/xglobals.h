@@ -5,9 +5,6 @@
  * LICENSE.TXT as a whole. The GCC Runtime Library Exception applies
  * to this file.  */
 
-#ifndef __MCFGTHREAD_XGLOBALS_
-#define __MCFGTHREAD_XGLOBALS_
-
 #include "fwd.h"
 #include "thread.h"
 #include "mutex.h"
@@ -878,5 +875,3 @@ __MCF_show_service_notification(const UNICODE_STRING* caption, const UNICODE_STR
       return -1;
     return (int) response;
   }
-
-#endif  /* __MCFGTHREAD_XGLOBALS_  */
