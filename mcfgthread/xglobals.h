@@ -26,12 +26,6 @@
 #  error This internal header is for C only.
 #endif
 
-#ifndef __MCF_XGLOBALS_IMPORT
-#  define __MCF_XGLOBALS_IMPORT
-#  define __MCF_XGLOBALS_INLINE  __MCF_GNU_INLINE
-#  define __MCF_XGLOBALS_READONLY   const
-#endif
-
 /* Guarantee that `nullptr` is available for C.  */
 #if 0 __MCF_C23(+1) __MCF_CXX11(+1) == 0
 #  define nullptr   ((void*) __MCF_IPTR_0)

@@ -11,6 +11,150 @@
 #define __MCF_XGLOBALS_READONLY
 #include "xglobals.h"
 
+static inline
+void
+do_append_string(WCHAR** sp, const WCHAR* end_of_buffer, WCHAR c)
+  {
+    if(*sp != end_of_buffer)
+      *((*sp) ++) = c;
+  }
+
+static
+ULONG
+do_format_message(ULONG code, WCHAR* outptr, const WCHAR* end_of_buffer)
+  {
+    return FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | 255,
+                          nullptr, code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                          outptr, (ULONG) (end_of_buffer - outptr), nullptr);
+  }
+
+__MCF_DLLEXPORT
+void
+__MCF_runtime_failure(const char* where)
+  {
+    ULONG last_error = GetLastError();
+    WCHAR buffer[1536];
+    WCHAR* sptr = buffer;
+    WCHAR* end_of_buffer = buffer + ARRAYSIZE(buffer);
+
+    /* Get a piece of localized text for the caption of the message box.  */
+    UNICODE_STRING caption;
+    caption.Buffer = sptr;
+    caption.Length = 0;
+    caption.MaximumLength = (USHORT) ((UINT_PTR) end_of_buffer - (UINT_PTR) sptr);
+
+    /* #define ERROR_UNHANDLED_EXCEPTION   574L
+     * {Application Error}
+     * The exception %s (0x%08lx) occurred in the application at location 0x%08lx.  */
+    WCHAR* lptr = end_of_buffer - 127;
+    ULONG outlen = do_format_message(574, lptr, end_of_buffer);
+    if((outlen != 0) && (*lptr == L'{')) {
+      lptr ++;
+
+      while((*lptr != 0) && (*lptr != L'}'))
+        do_append_string(&sptr, end_of_buffer, *(lptr ++));
+
+      caption.Length = (USHORT) ((UINT_PTR) sptr - (UINT_PTR) caption.Buffer);
+    }
+
+    /* Get a piece of localized text for the text of the message box.  */
+    UNICODE_STRING text;
+    text.Buffer = sptr;
+    text.Length = 0;
+    text.MaximumLength = (USHORT) ((UINT_PTR) end_of_buffer - (UINT_PTR) sptr);
+
+    /* Get the file name of the executable.  */
+    outlen = GetModuleFileNameW(NULL, sptr, (ULONG) (end_of_buffer - sptr));
+    if(outlen != 0) {
+      sptr += outlen;
+
+      do_append_string(&sptr, end_of_buffer, L'\r');
+      do_append_string(&sptr, end_of_buffer, L'\n');
+      do_append_string(&sptr, end_of_buffer, L'\r');
+      do_append_string(&sptr, end_of_buffer, L'\n');
+
+      text.Length = (USHORT) ((UINT_PTR) sptr - (UINT_PTR) text.Buffer);
+    }
+
+    /* #define ERROR_DEBUG_ATTACH_FAILED   590L
+     * {Unexpected Failure in DebugActiveProcess}
+     * An unexpected failure occurred while processing a DebugActiveProcess API
+     * request. You may choose OK to terminate the process, or Cancel to ignore
+     * the error.  */
+    lptr = end_of_buffer - 127;
+    outlen = do_format_message(590, lptr, end_of_buffer);
+    if((outlen != 0) && (*lptr == L'{')) {
+      lptr ++;
+
+      while((*lptr != 0) && (*lptr != L'}'))
+        if((*lptr == L'D') && __MCF_mequal(lptr, L"DebugActiveProcess", 18 * sizeof(WCHAR))) {
+          lptr += 18;
+          do_append_string(&sptr, end_of_buffer, L'`');
+          for(const char* pwh = where;  *pwh;  ++pwh)
+            do_append_string(&sptr, end_of_buffer, (unsigned char) *pwh);
+          do_append_string(&sptr, end_of_buffer, L'`');
+        } else
+          do_append_string(&sptr, end_of_buffer, *(lptr ++));
+
+      do_append_string(&sptr, end_of_buffer, L':');
+      do_append_string(&sptr, end_of_buffer, L' ');
+
+      outlen = do_format_message(last_error, sptr, end_of_buffer);
+      sptr += outlen;
+
+      text.Length = (USHORT) ((UINT_PTR) sptr - (UINT_PTR) text.Buffer);
+    }
+
+    /* If this process has a console, write the message directly into it.
+     * Errors are ignored.  */
+    HANDLE console = GetStdHandle(STD_ERROR_HANDLE);
+    if((console != INVALID_HANDLE_VALUE) && (console != NULL)) {
+      DWORD nwritten;
+      WriteConsoleW(console, text.Buffer, text.Length / sizeof(WCHAR), &nwritten, nullptr);
+      (void) nwritten;
+    }
+
+    /* If we are in a DLL entry-point function or a TLS callback, it is not safe
+     * to call `MessageBoxW()` from USER32.DLL, so request CSRSS.EXE to display
+     * the message box for us.  */
+    __MCF_show_service_notification(&caption, &text, MB_OK | MB_ICONSTOP);
+
+    /* Terminate the current process.  */
+    EXCEPTION_RECORD record = { .ExceptionCode = (ULONG) STATUS_FAIL_FAST_EXCEPTION,
+                                .ExceptionFlags = EXCEPTION_NONCONTINUABLE,
+                                .ExceptionAddress = __builtin_return_address(0) };
+    RaiseFailFastException(&record, nullptr, 0);
+    __builtin_trap();
+  }
+
+__MCF_DLLEXPORT __MCF_FN_PURE
+uint32_t
+_MCF_get_win32_error(void)
+  {
+    return GetLastError();
+  }
+
+__MCF_DLLEXPORT __MCF_FN_CONST
+size_t
+_MCF_get_page_size(void)
+  {
+    return __MCF_crt_sysinfo.dwPageSize;
+  }
+
+__MCF_DLLEXPORT __MCF_FN_CONST
+size_t
+_MCF_get_processor_count(void)
+  {
+    return __MCF_crt_sysinfo.dwNumberOfProcessors;
+  }
+
+__MCF_DLLEXPORT __MCF_FN_CONST
+uintptr_t
+_MCF_get_active_processor_mask(void)
+  {
+    return __MCF_crt_sysinfo.dwActiveProcessorMask;
+  }
+
 __MCF_DLLEXPORT
 EXCEPTION_DISPOSITION
 __MCF_seh_top(EXCEPTION_RECORD* rec, PVOID estab_frame, CONTEXT* ctx, PVOID disp_ctx)
