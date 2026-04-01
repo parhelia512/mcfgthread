@@ -23,7 +23,7 @@ static
 ULONG
 do_format_message(ULONG code, WCHAR* outptr, const WCHAR* end_of_buffer)
   {
-    return FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | 255,
+    return FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
                           nullptr, code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
                           outptr, (ULONG) (end_of_buffer - outptr), nullptr);
   }
