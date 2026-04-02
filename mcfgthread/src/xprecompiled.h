@@ -5,7 +5,6 @@
  * LICENSE.TXT as a whole. The GCC Runtime Library Exception applies
  * to this file.  */
 
-#include "version.h"
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>

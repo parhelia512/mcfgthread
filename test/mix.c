@@ -6,7 +6,6 @@
  * to this file.  */
 
 #include "../mcfgthread/thread.h"
-#include "version.h"
 #undef NDEBUG
 #include <assert.h>
 #include <windows.h>
@@ -15,12 +14,9 @@ int
 main(void)
   {
     // load dlls
-    wchar_t dll_name[1024];
-    wsprintfW(dll_name, L".\\libmcfgthread-%d.dll", _MCF_ABI_VERSION_MAJOR);
-    HMODULE pdll = LoadLibraryW(dll_name);
+    HMODULE pdll = LoadLibraryW(L"libmcfgthread-2.dll");
     assert(pdll);
-    wsprintfW(dll_name, L".\\libmcfgthread-minimal-%d.dll", _MCF_ABI_VERSION_MAJOR);
-    HMODULE mdll = LoadLibraryW(dll_name);
+    HMODULE mdll = LoadLibraryW(L"libmcfgthread-minimal-2.dll");
     assert(mdll);
 
     // load functions from dll
