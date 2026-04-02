@@ -9,4 +9,4 @@
 #define __MCF_GTHR_IMPORT  __MCF_DLLEXPORT
 #define __MCF_GTHR_INLINE  __MCF_DLLEXPORT
 #define __MCF_GTHR_NO_ALIASES  1
-#include "gthr.h"
+#include "../gthr.h"

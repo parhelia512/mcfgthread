@@ -8,7 +8,7 @@
 #include "xprecompiled.h"
 #define __MCF_GTHR_AUX_IMPORT  __MCF_DLLEXPORT
 #define __MCF_GTHR_AUX_INLINE  __MCF_DLLEXPORT
-#include "gthr_aux.h"
+#include "../gthr_aux.h"
 #include "xglobals.h"
 
 static

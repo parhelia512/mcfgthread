@@ -8,8 +8,8 @@
 #include "xprecompiled.h"
 #define __MCF_DTOR_QUEUE_IMPORT  __MCF_DLLEXPORT
 #define __MCF_DTOR_QUEUE_INLINE  __MCF_DLLEXPORT
-#include "dtor_queue.h"
-#include "mutex.h"
+#include "../dtor_queue.h"
+#include "../mutex.h"
 #include "xglobals.h"
 
 __MCF_DLLEXPORT

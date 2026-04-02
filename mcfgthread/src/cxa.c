@@ -8,11 +8,11 @@
 #include "xprecompiled.h"
 #define __MCF_CXA_IMPORT  __MCF_DLLEXPORT
 #define __MCF_CXA_INLINE  __MCF_DLLEXPORT
-#include "cxa.h"
-#include "once.h"
-#include "mutex.h"
-#include "dtor_queue.h"
-#include "thread.h"
+#include "../cxa.h"
+#include "../once.h"
+#include "../mutex.h"
+#include "../dtor_queue.h"
+#include "../thread.h"
 #include "xglobals.h"
 
 __MCF_DLLEXPORT

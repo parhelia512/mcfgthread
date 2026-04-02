@@ -33,15 +33,15 @@ mcfgthread_include = [
   'mcfgthread/cxx11.hpp' ]
 
 mcfgthread_src_min = [
-  'mcfgthread/xglobals.c', 'mcfgthread/clock.c', 'mcfgthread/mutex.c',
-  'mcfgthread/shared_mutex.c', 'mcfgthread/cond.c', 'mcfgthread/once.c',
-  'mcfgthread/sem.c', 'mcfgthread/event.c', 'mcfgthread/thread.c',
-  'mcfgthread/cxa.c', 'mcfgthread/dtor_queue.c', 'mcfgthread/exit.c',
-  'mcfgthread/tls.c', 'mcfgthread/gthr_aux.c' ]
+  'mcfgthread/src/xglobals.c', 'mcfgthread/src/clock.c', 'mcfgthread/src/mutex.c',
+  'mcfgthread/src/shared_mutex.c', 'mcfgthread/src/cond.c', 'mcfgthread/src/once.c',
+  'mcfgthread/src/sem.c', 'mcfgthread/src/event.c', 'mcfgthread/src/thread.c',
+  'mcfgthread/src/cxa.c', 'mcfgthread/src/dtor_queue.c', 'mcfgthread/src/exit.c',
+  'mcfgthread/src/tls.c', 'mcfgthread/src/gthr_aux.c' ]
 
 mcfgthread_src_ex = [
-  'mcfgthread/gthr.c', 'mcfgthread/gthr_libobjc.c', 'mcfgthread/c11.c',
-  'mcfgthread/libcxx.c' ]
+  'mcfgthread/src/gthr.c', 'mcfgthread/src/gthr_libobjc.c', 'mcfgthread/src/c11.c',
+  'mcfgthread/src/libcxx.c' ]
 
 test_src = [
   'test/lazy_load.c', 'test/self_oom.c', 'test/mix.c', 'test/memory.c', 'test/clock.c',
@@ -172,7 +172,7 @@ endif
 configure_file(configuration: ver,
                output: 'version.h',
                install: false,
-               input: 'mcfgthread/version.h.in')
+               input: 'mcfgthread/src/version.h.in')
 
 install_headers(mcfgthread_include, preserve_path: true)
 install_headers(meson.current_build_dir() / 'version.h', subdir: 'mcfgthread')
@@ -201,7 +201,7 @@ dep_kernel32 = declare_dependency(
           input: configure_file(configuration: stdcall_suffixes,
                                 output: 'kernel32.def',
                                 install: false,
-                                input: 'mcfgthread/kernel32.def.in')))
+                                input: 'mcfgthread/src/kernel32.def.in')))
 
 dep_ntdll = declare_dependency(
       link_with: custom_target('ntdll',
@@ -211,11 +211,12 @@ dep_ntdll = declare_dependency(
           input: configure_file(configuration: stdcall_suffixes,
                                 output: 'ntdll.def',
                                 install: false,
-                                input: 'mcfgthread/ntdll.def.in')))
+                                input: 'mcfgthread/src/ntdll.def.in')))
 
 mcfgthread_version_o = import('windows').compile_resources(
-      'mcfgthread/version.rc',
-      depend_files: [ 'mcfgthread/version.h.in', 'mcfgthread/version.manifest' ],
+      'mcfgthread/src/version.rc',
+      depend_files: [ 'mcfgthread/src/version.h.in',
+                      'mcfgthread/src/version.manifest' ],
       args: [ '-I.', '-c65001' ])
 
 if cc.get_linker_id() in [ 'link', 'lld-link' ]
@@ -245,7 +246,7 @@ else
 endif
 
 lib_mcfgthread_minimal_dll = shared_library('mcfgthread-minimal',
-      c_pch: 'mcfgthread/xprecompiled.h',
+      c_pch: 'mcfgthread/src/xprecompiled.h',
       c_args: [ '-I.', '-ffreestanding', '-D__MCF_IN_DLL' ],
       override_options: { 'c_winlibs': [] },
       link_args: lib_mcfgthread_dll_link_args,
@@ -258,7 +259,7 @@ lib_mcfgthread_minimal_dll = shared_library('mcfgthread-minimal',
       install: true)
 
 lib_mcfgthread_dll = shared_library('mcfgthread',
-      c_pch: 'mcfgthread/xprecompiled.h',
+      c_pch: 'mcfgthread/src/xprecompiled.h',
       c_args: [ '-I.', '-ffreestanding', '-D__MCF_IN_DLL' ],
       override_options: { 'c_winlibs': [] },
       link_args: lib_mcfgthread_dll_link_args,
@@ -276,7 +277,7 @@ if cc.has_define('__CYGWIN__')
   lib_mcfgthread_a = lib_mcfgthread_dll
 else
   lib_mcfgthread_a = static_library('mcfgthread',
-        c_pch: 'mcfgthread/xprecompiled.h',
+        c_pch: 'mcfgthread/src/xprecompiled.h',
         c_args: [ '-I.', '-ffunction-sections' ],
         sources: [ mcfgthread_src_min, mcfgthread_src_ex ],
         kwargs: build_subdir_lib,
@@ -296,66 +297,67 @@ import('pkgconfig').generate(lib_mcfgthread_dll,
 test_version_o = import('windows').compile_resources(
       'test/version.rc',
       args: [ '-I.', '-c65001' ],
-      depend_files: [ 'mcfgthread/version.manifest' ])
+      depend_files: [ 'mcfgthread/src/version.manifest' ])
 
 foreach src : test_src
-  basename = src.replace('test/', '')
   test_c_args = []
   test_cpp_args = []
   test_link_args = []
   test_link_with = lib_mcfgthread_dll
 
-  if src.endswith('.cpp')
-    test_link_args = [ '-static-libgcc', '-static-libstdc++' ]
-  endif
-
-  if basename in [ 'lazy_load.c', 'self_oom.c', 'mix.c', 'xglobals_name.c',
-                   'tls_dtor_static.c' ]
+  if src in [ 'test/lazy_load.c', 'test/self_oom.c', 'test/mix.c',
+              'test/xglobals_name.c', 'test/tls_dtor_static.c' ]
     test_link_with = lib_mcfgthread_a
   endif
 
-  if basename in [ 'memory.c' ]
+  if src in [ 'test/memory.c' ]
     test_link_with = lib_mcfgthread_minimal_dll
   endif
 
-  if basename in [ 'gthr_c89_pedantic.c' ]
-    test_c_args = [ '-std=c89', '-Wpedantic', '-Wno-variadic-macros',
-                    '-Wno-long-long', '-Werror=declaration-after-statement',
-                    cc.get_supported_arguments('-Wno-c99-extensions') ]
+  if src in [ 'test/gthr_c89_pedantic.c' ]
+    test_c_args = [
+        '-std=c89', '-Wpedantic', '-Wno-variadic-macros',
+        '-Wno-long-long', '-Werror=declaration-after-statement',
+        cc.get_supported_arguments('-Wno-c99-extensions') ]
   endif
 
-  if basename in [ 'gthr_cxx98_pedantic.cpp' ]
-    test_cpp_args = [ '-std=c++98', '-Wpedantic', '-Wno-variadic-macros',
-                      '-Wno-long-long', '-Wno-zero-as-null-pointer-constant',
-                      cxx.get_supported_arguments('-Wno-c++11-extensions') ]
+  if src in [ 'test/gthr_cxx98_pedantic.cpp' ]
+    test_cpp_args = [
+        '-std=c++98', '-Wpedantic', '-Wno-variadic-macros',
+        '-Wno-long-long', '-Wno-zero-as-null-pointer-constant',
+        cxx.get_supported_arguments('-Wno-c++11-extensions') ]
   endif
 
-  if basename in [ 'c11_c99_pedantic.c' ]
+  if src in [ 'test/c11_c99_pedantic.c' ]
     test_c_args = [ '-std=c99', '-Wpedantic' ]
   endif
 
-  if basename in [ 'teb_att.c' ]
+  if src in [ 'test/teb_att.c' ]
     test_c_args = [ cc.get_supported_arguments('-masm=att') ]
   endif
 
-  if basename in [ 'cxx11_no_exceptions.cpp' ]
+  if src in [ 'test/cxx11_no_exceptions.cpp' ]
     test_cpp_args = [ '-fno-rtti', '-fno-exceptions' ]
   endif
 
-  if basename in [ 'cxx11_pedantic.cpp' ]
+  if src in [ 'test/cxx11_pedantic.cpp' ]
     test_cpp_args = [ '-std=c++11', '-Wpedantic' ]
   endif
 
-  if basename in [ 'cxx14_pedantic.cpp' ]
+  if src in [ 'test/cxx14_pedantic.cpp' ]
     test_cpp_args = [ '-std=c++14', '-Wpedantic' ]
   endif
 
-  if basename.startswith('shared_mutex_')
+  if src.startswith('test/shared_mutex_')
     test_cpp_args = [ '-std=c++17' ]
   endif
 
-  if basename.startswith('shared_timed_mutex_')
+  if src.startswith('test/shared_timed_mutex_')
     test_cpp_args = [ '-std=c++14' ]
+  endif
+
+  if src.endswith('.cpp')
+    test_link_args = [ '-static-libgcc', '-static-libstdc++' ]
   endif
 
   test_exe = executable(src.underscorify(),

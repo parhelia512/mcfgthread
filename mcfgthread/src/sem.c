@@ -8,7 +8,7 @@
 #include "xprecompiled.h"
 #define __MCF_SEM_IMPORT  __MCF_DLLEXPORT
 #define __MCF_SEM_INLINE  __MCF_DLLEXPORT
-#include "sem.h"
+#include "../sem.h"
 #include "xglobals.h"
 
 __MCF_DLLEXPORT

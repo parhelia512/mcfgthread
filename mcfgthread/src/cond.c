@@ -8,7 +8,7 @@
 #include "xprecompiled.h"
 #define __MCF_COND_IMPORT  __MCF_DLLEXPORT
 #define __MCF_COND_INLINE  __MCF_DLLEXPORT
-#include "cond.h"
+#include "../cond.h"
 #include "xglobals.h"
 
 static __MCF_NEVER_INLINE

@@ -8,7 +8,7 @@
 #include "xprecompiled.h"
 #define __MCF_CLOCK_IMPORT  __MCF_DLLEXPORT
 #define __MCF_CLOCK_INLINE  __MCF_DLLEXPORT
-#include "clock.h"
+#include "../clock.h"
 #include "xglobals.h"
 
 static inline

@@ -5,11 +5,11 @@
  * LICENSE.TXT as a whole. The GCC Runtime Library Exception applies
  * to this file.  */
 
-#include "fwd.h"
-#include "thread.h"
-#include "mutex.h"
-#include "cond.h"
-#include "dtor_queue.h"
+#include "../fwd.h"
+#include "../thread.h"
+#include "../mutex.h"
+#include "../cond.h"
+#include "../dtor_queue.h"
 #include <minwindef.h>
 #include <winnt.h>
 #include <ntstatus.h>

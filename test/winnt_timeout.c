@@ -7,7 +7,7 @@
 
 #define WIN32_LEAN_AND_MEAN  1
 #include <windows.h>
-#include "../mcfgthread/xglobals.h"
+#include "../mcfgthread/src/xglobals.h"
 #include "../mcfgthread/clock.h"
 #include "../mcfgthread/thread.h"
 #undef NDEBUG

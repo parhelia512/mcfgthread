@@ -8,8 +8,8 @@
 #include "xprecompiled.h"
 #define __MCF_TLS_IMPORT  __MCF_DLLEXPORT
 #define __MCF_TLS_INLINE  __MCF_DLLEXPORT
-#include "tls.h"
-#include "atomic.h"
+#include "../tls.h"
+#include "../atomic.h"
 #include "xglobals.h"
 
 __MCF_DLLEXPORT

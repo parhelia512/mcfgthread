@@ -11,7 +11,7 @@ int main(void) { return 77;  }
 
 #define WIN32_LEAN_AND_MEAN  1
 #include <windows.h>
-#include "../mcfgthread/xglobals.h"
+#include "../mcfgthread/src/xglobals.h"
 #include <stdio.h>
 #undef NDEBUG
 #include <assert.h>

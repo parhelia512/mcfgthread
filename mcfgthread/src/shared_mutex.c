@@ -8,7 +8,7 @@
 #include "xprecompiled.h"
 #define __MCF_SHARED_MUTEX_IMPORT  __MCF_DLLEXPORT
 #define __MCF_SHARED_MUTEX_INLINE  __MCF_DLLEXPORT
-#include "shared_mutex.h"
+#include "../shared_mutex.h"
 #include "xglobals.h"
 
 static

@@ -8,8 +8,8 @@
 #include "xprecompiled.h"
 #define __MCF_THREAD_IMPORT  __MCF_DLLEXPORT
 #define __MCF_THREAD_INLINE  __MCF_DLLEXPORT
-#include "thread.h"
-#include "event.h"
+#include "../thread.h"
+#include "../event.h"
 #include "xglobals.h"
 
 typedef enum thread_init_status thread_init_status;

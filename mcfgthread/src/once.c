@@ -8,7 +8,7 @@
 #include "xprecompiled.h"
 #define __MCF_ONCE_IMPORT  __MCF_DLLEXPORT
 #define __MCF_ONCE_INLINE  __MCF_DLLEXPORT
-#include "once.h"
+#include "../once.h"
 #include "xglobals.h"
 
 __MCF_DLLEXPORT
