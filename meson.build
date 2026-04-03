@@ -301,11 +301,6 @@ import('pkgconfig').generate(lib_mcfgthread_dll,
 # Rules for tests
 #===========================================================
 
-test_version_o = import('windows').compile_resources(
-      'test/version.rc',
-      args: [ '-I.', '-c65001' ],
-      depend_files: [ 'mcfgthread/src/version.manifest' ])
-
 foreach src : test_src
   test_c_args = []
   test_cpp_args = []
@@ -373,7 +368,7 @@ foreach src : test_src
                         implicit_include_directories: false,
                         include_directories: include_directories('.'),
                         link_args: test_link_args,
-                        sources: [ src, test_version_o ],
+                        sources: [ src ],
                         dependencies: [ dep_ntdll ],
                         link_with: test_link_with,
                         kwargs: build_subdir_bin,
