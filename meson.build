@@ -172,7 +172,7 @@ endif
 configure_file(configuration: ver,
                output: 'version.h',
                install: false,
-               input: 'mcfgthread/src/version.h.in')
+               input: 'mcfgthread/version.h.in')
 
 install_headers(mcfgthread_include, preserve_path: true)
 install_headers(meson.current_build_dir() / 'version.h', subdir: 'mcfgthread')
@@ -215,7 +215,7 @@ dep_ntdll = declare_dependency(
 
 mcfgthread_version_o = import('windows').compile_resources(
       'mcfgthread/src/version.rc',
-      depend_files: [ 'mcfgthread/src/version.h.in',
+      depend_files: [ 'mcfgthread/version.h.in',
                       'mcfgthread/src/version.manifest' ],
       args: [ '-I.', '-c65001' ])
 
