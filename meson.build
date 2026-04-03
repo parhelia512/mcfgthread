@@ -217,7 +217,8 @@ mcfgthread_version_o = import('windows').compile_resources(
       'mcfgthread/src/version.rc',
       depend_files: [ 'mcfgthread/version.h.in',
                       'mcfgthread/src/version.manifest' ],
-      args: [ '-I.', '-c65001' ])
+      include_directories: include_directories('.'),
+      args: [ '-c65001' ])
 
 if cc.get_linker_id() in [ 'link', 'lld-link' ]
   lib_mcfgthread_dll_link_args = [
@@ -247,7 +248,9 @@ endif
 
 lib_mcfgthread_minimal_dll = shared_library('mcfgthread-minimal',
       c_pch: 'mcfgthread/src/xprecompiled.h',
-      c_args: [ '-I.', '-ffreestanding', '-D__MCF_IN_DLL' ],
+      c_args: [ '-ffreestanding', '-D__MCF_IN_DLL' ],
+      implicit_include_directories: false,
+      include_directories: include_directories('.'),
       override_options: { 'c_winlibs': [] },
       link_args: lib_mcfgthread_dll_link_args,
       sources: [ mcfgthread_src_min, mcfgthread_version_o ],
@@ -260,7 +263,9 @@ lib_mcfgthread_minimal_dll = shared_library('mcfgthread-minimal',
 
 lib_mcfgthread_dll = shared_library('mcfgthread',
       c_pch: 'mcfgthread/src/xprecompiled.h',
-      c_args: [ '-I.', '-ffreestanding', '-D__MCF_IN_DLL' ],
+      c_args: [ '-ffreestanding', '-D__MCF_IN_DLL' ],
+      implicit_include_directories: false,
+      include_directories: include_directories('.'),
       override_options: { 'c_winlibs': [] },
       link_args: lib_mcfgthread_dll_link_args,
       objects: lib_mcfgthread_minimal_dll.extract_objects(mcfgthread_src_min),
@@ -278,7 +283,9 @@ if cc.has_define('__CYGWIN__')
 else
   lib_mcfgthread_a = static_library('mcfgthread',
         c_pch: 'mcfgthread/src/xprecompiled.h',
-        c_args: [ '-I.', '-ffunction-sections' ],
+        c_args: [ '-ffunction-sections' ],
+        implicit_include_directories: false,
+        include_directories: include_directories('.'),
         sources: [ mcfgthread_src_min, mcfgthread_src_ex ],
         kwargs: build_subdir_lib,
         install: true)
@@ -363,6 +370,8 @@ foreach src : test_src
   test_exe = executable(src.underscorify(),
                         c_args: test_c_args,
                         cpp_args: test_cpp_args,
+                        implicit_include_directories: false,
+                        include_directories: include_directories('.'),
                         link_args: test_link_args,
                         sources: [ src, test_version_o ],
                         dependencies: [ dep_ntdll ],
