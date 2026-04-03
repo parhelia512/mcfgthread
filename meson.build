@@ -216,7 +216,7 @@ dep_ntdll = declare_dependency(
 mcfgthread_version_o = import('windows').compile_resources(
       'mcfgthread/src/version.rc',
       depend_files: [ 'mcfgthread/version.h.in',
-                      'mcfgthread/src/version.manifest' ],
+                      'mcfgthread/src/mcfgthread.manifest' ],
       include_directories: include_directories('.'),
       args: [ '-c65001' ])
 
