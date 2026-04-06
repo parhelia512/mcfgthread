@@ -258,7 +258,7 @@ EXCEPTION_REGISTRATION_RECORD*
 __MCF_i386_seh_install(DWORD* storage)
   {
     EXCEPTION_REGISTRATION_RECORD* const restrict record = (void*) storage;
-    __MCF_teb_store_ptr(0, record);
+    __MCF_teb_store_ptr(0, (intptr_t) record);
     return record;
   }
 
@@ -267,7 +267,7 @@ void
 __MCF_i386_seh_cleanup(EXCEPTION_REGISTRATION_RECORD* const* ref)
   {
     EXCEPTION_REGISTRATION_RECORD* const restrict record = *ref;
-    __MCF_teb_store_ptr(0, record->Next);
+    __MCF_teb_store_ptr(0, (intptr_t) record->Next);
   }
 
 /* Some old code assumes that ESP is always aligned to a 16-byte boundary,

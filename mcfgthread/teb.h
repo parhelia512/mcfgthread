@@ -247,25 +247,25 @@ __MCF_teb_store_32(uint32_t __offset, int32_t __value)
 #endif
   }
 
-/* Load a generic pointer at `__offset` of the thread environment block (TEB)
- * of the current thread. This function may operate on TEB directly and may be
- * more efficient than accessing through `__MCF_teb()`.  */
+/* Load a pointer-size integer at `__offset` of the thread environment block
+ * (TEB) of the current thread. This function may operate on TEB directly and
+ * may be more efficient than accessing through `__MCF_teb()`.  */
 __MCF_TEB_INLINE __MCF_FN_PURE
-void*
+intptr_t
 __MCF_teb_load_ptr(uint32_t __offset)
   __MCF_noexcept
   {
-    void* __value;
+    intptr_t __value;
 #if defined __MCF_M_X8664_ASM
 #  if defined __clang__
-    __value = *(void* __seg_gs*)(uint64_t) __offset;
+    __value = *(intptr_t __seg_gs*)(uint64_t) __offset;
 #  else
     __asm__ ("gs; .insn 0x8B, %0, %a1"  /* REX.W:8B := mov R64, R/M64 */
         : "=r"(__value) : "Ts"((uint64_t) __offset) : "memory");
 #  endif
 #elif defined __MCF_M_X8632_ASM
 #  if defined __clang__
-    __value = *(void* __seg_fs*) __offset;
+    __value = *(intptr_t __seg_fs*) __offset;
 #  else
     __asm__ ("fs; .insn 0x8B, %0, %a1"  /* 8B := mov R32, R/M32 */
         : "=r"(__value) : "Ts"(__offset) : "memory");
@@ -273,37 +273,37 @@ __MCF_teb_load_ptr(uint32_t __offset)
 #elif defined __MCF_M_ARM64_ASM
     register char* __teb __asm__("x18");
     __asm__ ("" : "=r"(__teb));
-    __value = *(void**) (__teb + __offset);
+    __value = *(intptr_t*) (__teb + __offset);
 #elif defined __MCF_M_X8664
-    __value = (void*) __readgsqword(__offset);
+    __value = (intptr_t) __readgsqword(__offset);
 #elif defined __MCF_M_X8632
-    __value = (void*) __readfsdword(__offset);
+    __value = (intptr_t) __readfsdword(__offset);
 #elif defined __MCF_M_ARM64
-    __value = (void*) __readx18qword(__offset);
+    __value = (intptr_t) __readx18qword(__offset);
 #else
 #  error unimplemented
 #endif
     return __value;
   }
 
-/* Stores a generic pointer at `__offset` of the thread environment block (TEB)
- * of the current thread. This function may operate on TEB directly and may be
- * more efficient than accessing through `__MCF_teb()`.  */
+/* Stores a pointer-size integer at `__offset` of the thread environment block
+ * (TEB) of the current thread. This function may operate on TEB directly and
+ * may be more efficient than accessing through `__MCF_teb()`.  */
 __MCF_TEB_INLINE
 void
-__MCF_teb_store_ptr(uint32_t __offset, const void* __value)
+__MCF_teb_store_ptr(uint32_t __offset, intptr_t __value)
   __MCF_noexcept
   {
 #if defined __MCF_M_X8664_ASM
 #  if defined __clang__
-    *(const void* __seg_gs*)(uint64_t) __offset = __value;
+    *(intptr_t __seg_gs*)(uint64_t) __offset = __value;
 #  else
     __asm__ volatile ("gs; .insn 0x89, %0, %a1"  /* REX.W:89 := mov R/M64, R64 */
         : : "r"(__value), "Ts"((uint64_t) __offset) : "memory");
 #  endif
 #elif defined __MCF_M_X8632_ASM
 #  if defined __clang__
-    *(const void* __seg_fs*) __offset = __value;
+    *(intptr_t __seg_fs*) __offset = __value;
 #  else
     __asm__ volatile ("fs; .insn 0x89, %0, %a1"  /* 89 := mov R/M32, R32 */
         : : "r"(__value), "Ts"(__offset) : "memory");
@@ -311,7 +311,7 @@ __MCF_teb_store_ptr(uint32_t __offset, const void* __value)
 #elif defined __MCF_M_ARM64_ASM
     register char* __teb __asm__("x18");
     __asm__ ("" : "=r"(__teb));
-    *(const void**) (__teb + __offset) = __value;
+    *(intptr_t*) (__teb + __offset) = __value;
 #elif defined __MCF_M_X8664
     __writegsqword(__offset, (uint64_t) __value);
 #elif defined __MCF_M_X8632
@@ -330,7 +330,7 @@ void*
 __MCF_peb(void)
   __MCF_noexcept
   {
-    return __MCF_teb_load_ptr(__MCF_64_32(0x60, 0x30));
+    return (void*) __MCF_teb_load_ptr(__MCF_64_32(0x60, 0x30));
   }
 
 /* Get a pointer to the thread environment block of the current thread in the
@@ -347,7 +347,7 @@ __MCF_teb(void)
     __asm__ ("" : "=r"(__teb));
     return __teb;
 #else
-    return __MCF_teb_load_ptr(__MCF_64_32(0x30, 0x18));
+    return (void*) __MCF_teb_load_ptr(__MCF_64_32(0x30, 0x18));
 #endif
   }
 

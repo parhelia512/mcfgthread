@@ -59,7 +59,7 @@ thread_proc(void* param)
   {
 #ifdef __i386__
     DWORD record[] = { (DWORD) __MCF_teb_load_ptr(0), (DWORD) unwind_done };
-    __MCF_teb_store_ptr(0, &record);
+    __MCF_teb_store_ptr(0, (intptr_t) &record);
 #else
     __asm__ (".seh_handler %c0, @except, @unwind" : : "i"(unwind_done));
 #endif
