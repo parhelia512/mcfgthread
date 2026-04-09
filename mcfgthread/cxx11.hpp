@@ -23,13 +23,11 @@
 #if __MCF_CXX14(1+)0
 #include <shared_mutex>  // shared_lock
 #endif
-
+extern "C" void* __dso_handle;
 namespace _MCF {
+namespace _Noadl = ::_MCF;
 
 // Forward declarations
-namespace _Noadl = ::_MCF;
-extern "C" void* __dso_handle;
-
 namespace chrono = ::std::chrono;
 using ::std::lock_guard;
 using ::std::unique_lock;
@@ -642,12 +640,12 @@ notify_all_at_thread_exit(condition_variable& __cnd, unique_lock<mutex> __lock)
     __MCF_ASSERT(__lock.mutex() != nullptr);
 
     int __err = ::__MCF_cxa_thread_atexit(__MCF_CAST_PTR(__MCF_cxa_dtor_cdecl, ::_MCF_cond_signal_all),
-                                          __cnd.native_handle(), &__dso_handle);
+                                          __cnd.native_handle(), &::__dso_handle);
     if(__err != 0)
       __MCF_THROW_SYSTEM_ERROR(not_enough_memory, "__MCF_cxa_thread_atexit");
 
     __err = ::__MCF_cxa_thread_atexit(__MCF_CAST_PTR(__MCF_cxa_dtor_cdecl, ::_MCF_mutex_unlock),
-                                      __lock.mutex()->native_handle(), &__dso_handle);
+                                      __lock.mutex()->native_handle(), &::__dso_handle);
     if(__err != 0)
       __MCF_THROW_SYSTEM_ERROR(not_enough_memory, "__MCF_cxa_thread_atexit");
 
