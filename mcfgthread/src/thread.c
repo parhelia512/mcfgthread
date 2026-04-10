@@ -91,9 +91,14 @@ _MCF_thread_new_aligned(_MCF_thread_procedure* proc, size_t align, const void* d
       if(size_need != size_request) {
         /* Adjust `__data_opt` for over-aligned types. If we have over-allocated
          * memory, give back some. Errors are ignored.  */
-        init.thrd->__data_opt = (void*) ((((uintptr_t) init.thrd->__data_opt - 1) | (real_align - 1)) + 1);
+        uintptr_t data_addr = (uintptr_t) init.thrd->__data_opt;
+        data_addr --;
+        data_addr |= real_align - 1;
+        data_addr ++;
+        __MCF_ASSERT(data_addr % real_align == 0);
 
-        size_request = (uintptr_t) init.thrd->__data_opt + size - (uintptr_t) init.thrd;
+        init.thrd->__data_opt = (void*) data_addr;
+        size_request = data_addr + size - (uintptr_t) init.thrd;
         __MCF_ASSERT(size_need <= size_request);
         __MCF_mresize_0(init.thrd, size_request);
       }
