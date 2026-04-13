@@ -30,7 +30,7 @@ _MCF_event_await_change_slow(_MCF_event* event, int undesired, const int64_t* ti
         /* It is desired that the value is not `undesired`, so return it.  */
         return old.__value;
       }
-      else if(nt_timeout.__li.QuadPart == 0) {
+      else if(nt_timeout.li.QuadPart == 0) {
         /* The value is undesired and we are not willing to wait, so fail.  */
         return -1;
       }

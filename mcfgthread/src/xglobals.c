@@ -190,8 +190,8 @@ void
 __MCF_initialize_winnt_timeout_v3(__MCF_winnt_timeout* to, const int64_t* ms_opt)
   {
     /* Initialize it to an infinite value.  */
-    to->__li.QuadPart = INT64_MAX;
-    to->__since = 0;
+    to->li.QuadPart = INT64_MAX;
+    to->since = 0;
 
     /* If no timeout is given, wait indefinitely.  */
     if(!ms_opt)
@@ -204,8 +204,8 @@ __MCF_initialize_winnt_timeout_v3(__MCF_winnt_timeout* to, const int64_t* ms_opt
       if(*ms_opt > 910692730085477)
         return;
 
-      to->__li.QuadPart = (11644473600000 + *ms_opt) * 10000;
-      __MCF_ASSERT(to->__li.QuadPart > 0);
+      to->li.QuadPart = (11644473600000 + *ms_opt) * 10000;
+      __MCF_ASSERT(to->li.QuadPart > 0);
     }
     else if(*ms_opt < 0) {
       /* If `*ms_opt` is negative, it denotes the number of milliseconds to
@@ -213,12 +213,12 @@ __MCF_initialize_winnt_timeout_v3(__MCF_winnt_timeout* to, const int64_t* ms_opt
       if(*ms_opt < -922337203685477)
         return;
 
-      to->__li.QuadPart = *ms_opt * 10000;
-      __MCF_ASSERT(to->__li.QuadPart < 0);
-      QueryUnbiasedInterruptTime(&(to->__since));
+      to->li.QuadPart = *ms_opt * 10000;
+      __MCF_ASSERT(to->li.QuadPart < 0);
+      QueryUnbiasedInterruptTime(&(to->since));
     }
     else
-      to->__li.QuadPart = 0;
+      to->li.QuadPart = 0;
   }
 
 __MCF_DLLEXPORT
@@ -226,15 +226,15 @@ void
 __MCF_adjust_winnt_timeout_v3(__MCF_winnt_timeout* to)
   {
     /* Absolute timeouts need no adjustment.  */
-    if(to->__li.QuadPart >= 0)
+    if(to->li.QuadPart >= 0)
       return;
 
     /* Add the number of 100 nanoseconds that have elapsed so far, to the
      * timeout which is negative, using saturation arithmetic.  */
-    ULONGLONG old_since = to->__since;
-    QueryUnbiasedInterruptTime(&(to->__since));
-    to->__li.QuadPart += (LONGLONG) (to->__since - old_since);
-    to->__li.QuadPart &= to->__li.QuadPart >> 63;
+    ULONGLONG old_since = to->since;
+    QueryUnbiasedInterruptTime(&(to->since));
+    to->li.QuadPart += (LONGLONG) (to->since - old_since);
+    to->li.QuadPart &= to->li.QuadPart >> 63;
   }
 
 __MCF_DLLEXPORT __MCF_NEVER_INLINE
@@ -245,7 +245,7 @@ __MCF_batch_release_common(const void* key, size_t count)
      * they are waiting. We don't release the keyed event in this case, as it
      * blocks the calling thread infinitely if there is no thread to wake up.
      * See <https://github.com/lhmouse/mcfgthread/issues/21>.  */
-    static const __MCF_winnt_timeout one_second = { .__li.QuadPart = -10000000 };
+    static const __MCF_winnt_timeout one_second = { .li.QuadPart = -10000000 };
     size_t remaining = count;
     while((remaining != 0) && !__MCF_is_process_shutting_down())
       if(__MCF_keyed_event_signal(key, &one_second) == 0)
@@ -362,30 +362,30 @@ __MCF_gthread_initialize_globals(void)
     __MCF_g = __MCF_map_view_of_section(gfile, false);
     __MCF_CHECK(__MCF_g);
 
-    if(__MCF_g->__self_ptr) {
+    if(__MCF_g->self_ptr) {
       /* Reuse the existent region and close excess handles.  */
       void* new_base = __MCF_g;
-      __MCF_g = __MCF_g->__self_ptr;
+      __MCF_g = __MCF_g->self_ptr;
       __MCF_unmap_view_of_section(new_base);
       __MCF_close_handle(gfile);
       return;
     }
 
     /* The region is new, so initialize it.  */
-    __MCF_g->__self_ptr = __MCF_g;
-    __MCF_g->__self_size = sizeof(__MCF_crt_xglobals);
+    __MCF_g->self_ptr = __MCF_g;
+    __MCF_g->self_size = sizeof(__MCF_crt_xglobals);
 
     /* Allocate a TLS slot for this library.  */
-    __MCF_G(__tls_index) = TlsAlloc();
-    __MCF_CHECK(__MCF_G(__tls_index) != TLS_OUT_OF_INDEXES);
+    __MCF_G(tls_index) = TlsAlloc();
+    __MCF_CHECK(__MCF_G(tls_index) != TLS_OUT_OF_INDEXES);
 
     /* Perform lazy binding for newer functions.  */
     __MCF_G_SET_LAZY(__MCF_crt_kernel32, GetSystemTimePreciseAsFileTime);  /* win8 */
 
     /* Attach the main thread and make it joinable. The structure should
      * be all zeroes so no initialization is necessary.  */
-    __MCF_thread_attach_foreign(__MCF_G(__main_thread));
-    _MCF_atomic_store_32_rel(__MCF_G(__main_thread)->__nref, 2);
+    __MCF_thread_attach_foreign(__MCF_G(main_thread));
+    _MCF_atomic_store_32_rel(__MCF_G(main_thread)->__nref, 2);
   }
 
 __MCF_DLLEXPORT
@@ -393,7 +393,7 @@ void
 __MCF_gthread_on_thread_exit(void)
   {
     __MCF_USING_SEH_HANDLER(__MCF_seh_top);
-    _MCF_thread* self = __MCF_crt_TlsGetValue(__MCF_G(__tls_index));
+    _MCF_thread* self = __MCF_crt_TlsGetValue(__MCF_G(tls_index));
     if(!self)
       return;
 
@@ -439,7 +439,7 @@ __MCF_gthread_on_thread_exit(void)
     }
 
     /* Poison this value.  */
-    TlsSetValue(__MCF_G(__tls_index), __MCF_BAD_PTR);
+    TlsSetValue(__MCF_G(tls_index), __MCF_BAD_PTR);
     _MCF_thread_drop_ref_nonnull(self);
   }
 

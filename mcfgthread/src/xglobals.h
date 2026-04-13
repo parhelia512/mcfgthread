@@ -215,8 +215,8 @@ NtRaiseHardError(
 typedef void __stdcall typeof_GetSystemTimePreciseAsFileTime(FILETIME*);
 typedef LPVOID __stdcall typeof_TlsGetValue2(ULONG);
 
-#define __MCF_LAZY_D_(name)   typeof_##name* __f_##name
-#define __MCF_LAZY_P_(name)   __f_##name
+#define __MCF_LAZY_D_(name)   typeof_##name* f_##name
+#define __MCF_LAZY_P_(name)   f_##name
 
 __MCF_ALWAYS_INLINE
 FARPROC
@@ -315,8 +315,8 @@ typedef struct __MCF_crt_xglobals __MCF_crt_xglobals;
 /* This structure contains timeout values that will be passed to NT syscalls.  */
 struct __MCF_winnt_timeout
   {
-    LARGE_INTEGER __li;
-    ULONGLONG __since;
+    LARGE_INTEGER li;
+    ULONGLONG since;
   };
 
 __MCF_XGLOBALS_IMPORT
@@ -433,49 +433,49 @@ __MCF_gthread_on_thread_exit(void);
 /* Declare global data.  */
 struct __MCF_crt_xglobals
   {
-    __MCF_crt_xglobals* __self_ptr;
-    uint32_t __self_size;
-    uint32_t __tls_index;
+    __MCF_crt_xglobals* self_ptr;
+    uint32_t self_size;
+    uint32_t tls_index;
 
     /* the static thread object  */
-    __MCF_BR(__MCF_thread_base) __main_thread;
+    __MCF_BR(__MCF_thread_base) main_thread;
 
     /* `atexit()` support  */
-    __MCF_BR(_MCF_mutex) __exit_mtx;
-    __MCF_BR(__MCF_dtor_queue) __exit_queue;
+    __MCF_BR(_MCF_mutex) exit_mtx;
+    __MCF_BR(__MCF_dtor_queue) exit_queue;
 
     /* `at_quick_exit()` support  */
-    __MCF_BR(_MCF_mutex) __quick_exit_mtx;
-    __MCF_BR(__MCF_dtor_queue) __quick_exit_queue;
+    __MCF_BR(_MCF_mutex) quick_exit_mtx;
+    __MCF_BR(__MCF_dtor_queue) quick_exit_queue;
 
     /* mutex support  */
-    __MCF_ALIGNED(64) bool __mutex_spin_field[2048];
+    __MCF_ALIGNED(64) bool mutex_spin_field[2048];
 
     /* thread suspension support  */
-    __MCF_BR(_MCF_cond) __interrupt_cond;
+    __MCF_BR(_MCF_cond) interrupt_cond;
 
     /* WARNING: Fields hereinafter must be accessed via `__MCF_G_OPT`!  */
     __MCF_LAZY_D_(GetSystemTimePreciseAsFileTime);
-    void* __obsolete_f_QueryInterruptTime;
+    void* obsolete_f_QueryInterruptTime;
 
-    __MCF_BR(_MCF_mutex) __thread_oom_mtx;
-    __MCF_thread_base __thread_oom_self_st;
+    __MCF_BR(_MCF_mutex) thread_oom_mtx;
+    __MCF_thread_base thread_oom_self_st;
   };
 
 /* Ensure we don't mess things up.  */
-__MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, __self_ptr) == 0);
-__MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, __self_size) == __MCF_64_32(8, 4));
-__MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, __tls_index) == __MCF_64_32(12, 8));
-__MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, __main_thread) == __MCF_64_32(16, 16));
-__MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, __exit_mtx) == __MCF_64_32(1616, 816));
-__MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, __exit_queue) == __MCF_64_32(1624, 820));
-__MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, __quick_exit_mtx) == __MCF_64_32(3152, 1584));
-__MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, __quick_exit_queue) == __MCF_64_32(3160, 1588));
-__MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, __mutex_spin_field) == __MCF_64_32(4736, 2368));
-__MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, __interrupt_cond) == __MCF_64_32(6784, 4416));
-__MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, __f_GetSystemTimePreciseAsFileTime) == __MCF_64_32(6792, 4420));
-__MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, __thread_oom_mtx) == __MCF_64_32(6808, 4428));
-__MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, __thread_oom_self_st) == __MCF_64_32(6816, 4432));
+__MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, self_ptr) == 0);
+__MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, self_size) == __MCF_64_32(8, 4));
+__MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, tls_index) == __MCF_64_32(12, 8));
+__MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, main_thread) == __MCF_64_32(16, 16));
+__MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, exit_mtx) == __MCF_64_32(1616, 816));
+__MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, exit_queue) == __MCF_64_32(1624, 820));
+__MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, quick_exit_mtx) == __MCF_64_32(3152, 1584));
+__MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, quick_exit_queue) == __MCF_64_32(3160, 1588));
+__MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, mutex_spin_field) == __MCF_64_32(4736, 2368));
+__MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, interrupt_cond) == __MCF_64_32(6784, 4416));
+__MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, f_GetSystemTimePreciseAsFileTime) == __MCF_64_32(6792, 4420));
+__MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, thread_oom_mtx) == __MCF_64_32(6808, 4428));
+__MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, thread_oom_self_st) == __MCF_64_32(6816, 4432));
 
 /* These are constants that have to be initialized at load time.  */
 extern __MCF_ALIGNED(8) __MCF_BR(GUID) const __MCF_crt_gthread_guid;
@@ -498,8 +498,8 @@ extern __MCF_crt_xglobals* __MCF_XGLOBALS_READONLY restrict __MCF_g;
 /* As `__MCF_crt_xglobals` is shared between all static and shared instances of
  * this library within a single process, we have to involve sort of versioning.  */
 #define __MCF_G(field)     (__MCF_g->field)
-#define __MCF_G_OPT(field)  ((__MCF_g->__self_size >= offsetof(__MCF_crt_xglobals, field)  \
-                                                      + sizeof(__MCF_g->field))  \
+#define __MCF_G_OPT(field)  ((__MCF_g->self_size >= offsetof(__MCF_crt_xglobals, field)  \
+                                                    + sizeof(__MCF_g->field))  \
                              ? &(__MCF_g->field) : nullptr)
 
 #define __MCF_G_LAZY(name)          (*(__MCF_G(__MCF_LAZY_P_(name))))
@@ -823,7 +823,7 @@ __MCF_ALWAYS_INLINE
 int
 __MCF_wait_for_single_object(HANDLE Handle, const __MCF_winnt_timeout* Timeout)
   {
-    NTSTATUS status = NtWaitForSingleObject(Handle, false, (LARGE_INTEGER*) &(Timeout->__li));
+    NTSTATUS status = NtWaitForSingleObject(Handle, false, (LARGE_INTEGER*) &(Timeout->li));
     __MCF_ASSERT(NT_SUCCESS(status));
     return (status == STATUS_WAIT_0) ? 0 : -1;
   }
@@ -832,7 +832,7 @@ __MCF_ALWAYS_INLINE
 void
 __MCF_sleep(const __MCF_winnt_timeout* Timeout)
   {
-    NTSTATUS status = NtDelayExecution(false, (LARGE_INTEGER*) &(Timeout->__li));
+    NTSTATUS status = NtDelayExecution(false, (LARGE_INTEGER*) &(Timeout->li));
     __MCF_ASSERT(NT_SUCCESS(status));
   }
 
@@ -841,7 +841,7 @@ int
 __MCF_keyed_event_wait(const void* Key, const __MCF_winnt_timeout* Timeout)
   {
     NTSTATUS status = NtWaitForKeyedEvent(NULL, (PVOID) Key, false,
-                                          (LARGE_INTEGER*) &(Timeout->__li));
+                                          (LARGE_INTEGER*) &(Timeout->li));
     __MCF_ASSERT(NT_SUCCESS(status));
     return (status == STATUS_WAIT_0) ? 0 : -1;
   }
@@ -851,7 +851,7 @@ int
 __MCF_keyed_event_signal(const void* Key, const __MCF_winnt_timeout* Timeout)
   {
     NTSTATUS status = NtReleaseKeyedEvent(NULL, (PVOID) Key, false,
-                                          (LARGE_INTEGER*) &(Timeout->__li));
+                                          (LARGE_INTEGER*) &(Timeout->li));
     __MCF_ASSERT(NT_SUCCESS(status));
     return (status == STATUS_WAIT_0) ? 0 : -1;
   }

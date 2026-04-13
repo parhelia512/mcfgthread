@@ -32,7 +32,7 @@ _MCF_sem_wait(_MCF_sem* sem, const int64_t* timeout_opt)
         if(_MCF_atomic_cmpxchg_weak_pptr_acq(sem, &old, &new))
           return 0;
       }
-      else if(nt_timeout.__li.QuadPart == 0) {
+      else if(nt_timeout.li.QuadPart == 0) {
         /* Decrementing the counter will block, but we are not willing to
          * wait, so fail.  */
         return -1;
