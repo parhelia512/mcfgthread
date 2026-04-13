@@ -140,56 +140,63 @@ and unlocks the primitive mutex, releasing all threads that are waiting on it.
 
 ## List of Imported Functions
 
-|Function                       |DLL             |Category                   |
-|:------------------------------|:---------------|:------------------------- |
-|`BaseGetNamedObjectDirectory`  |KERNEL32        |Undocumented |
-|`CreateThread`                 |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createthread) |
-|`DecodePointer`                |KERNEL32, NTDLL |[Windows API](https://learn.microsoft.com/en-us/previous-versions/bb432242(v=vs.85)) |
-|`EncodePointer`                |KERNEL32, NTDLL |[Windows API](https://learn.microsoft.com/en-us/previous-versions/bb432254(v=vs.85)) |
-|`ExitThread`                   |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-exitthread) |
-|`FormatMessageW`               |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-formatmessagew) |
-|`GetLastError`                 |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/errhandlingapi/nf-errhandlingapi-getlasterror) |
-|`GetModuleFileNameW`           |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-getmodulefilenamew) |
-|`GetProcAddress`               |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-getprocaddress) |
-|`GetProcessHeap`               |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/heapapi/nf-heapapi-getprocessheap) |
-|`GetStdHandle`                 |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/console/getstdhandle) |
-|`GetSystemInfo`                |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/sysinfoapi/nf-sysinfoapi-getsysteminfo) |
-|`GetSystemTimeAsFileTime`      |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/sysinfoapi/nf-sysinfoapi-getsystemtimeasfiletime) |
-|`GetThreadPriority`            |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-getthreadpriority) |
-|`GetTickCount64`               |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/sysinfoapi/nf-sysinfoapi-gettickcount64) |
-|`HeapAlloc`                    |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/heapapi/nf-heapapi-heapalloc) |
-|`HeapFree`                     |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/heapapi/nf-heapapi-heapfree) |
-|`HeapReAlloc`                  |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/heapapi/nf-heapapi-heaprealloc) |
-|`HeapSetInformation`           |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/heapapi/nf-heapapi-heapsetinformation) |
-|`HeapSize`                     |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/heapapi/nf-heapapi-heapsize) |
-|`LoadLibraryExW`               |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-loadlibraryexw) |
-|`NtClose`                      |NTDLL           |[Windows Driver API](https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/nf-wdm-zwclose) |
-|`NtCreateSection`              |NTDLL           |[Windows Driver API](https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/nf-wdm-zwcreatesection) |
-|`NtDelayExecution`             |NTDLL           |Undocumented |
-|`NtDuplicateObject`            |NTDLL           |[Windows Driver API](https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/ntifs/nf-ntifs-zwduplicateobject) |
-|`NtMapViewOfSection`           |NTDLL           |[Windows Driver API](https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/nf-wdm-zwmapviewofsection) |
-|`NtRaiseHardError`             |NTDLL           |Undocumented |
-|`NtReleaseKeyedEvent`          |NTDLL           |Undocumented |
-|`NtUnmapViewOfSection`         |NTDLL           |[Windows Driver API](https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/nf-wdm-zwunmapviewofsection) |
-|`NtWaitForKeyedEvent`          |NTDLL           |Undocumented |
-|`NtWaitForSingleObject`        |NTDLL           |[Windows Driver API](https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/ntifs/nf-ntifs-zwwaitforsingleobject) |
-|`QueryPerformanceCounter`      |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/profileapi/nf-profileapi-queryperformancecounter) |
-|`QueryPerformanceFrequency`    |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/profileapi/nf-profileapi-queryperformancefrequency) |
-|`QueryUnbiasedInterruptTime`   |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/realtimeapiset/nf-realtimeapiset-queryunbiasedinterrupttime) |
-|`RaiseFailFastException`       |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/errhandlingapi/nf-errhandlingapi-raisefailfastexception) |
-|`RtlDllShutdownInProgress`     |NTDLL           |[Windows API](https://learn.microsoft.com/en-us/windows/win32/devnotes/rtldllshutdowninprogress)|
-|`RtlFillMemory`                |NTDLL           |[Windows Driver API](https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/nf-wdm-rtlfillmemory) |
-|`RtlMoveMemory`                |NTDLL           |[Windows Driver API](https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/nf-wdm-rtlmovememory) |
-|`RtlNtStatusToDosError`        |NTDLL           |[Windows Driver API](https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/ntifs/nf-ntifs-rtlntstatustodoserror) |
-|`RtlZeroMemory`                |NTDLL           |[Windows Driver API](https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/nf-wdm-rtlzeromemory) |
-|`SetConsoleCtrlHandler`        |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/console/setconsolectrlhandler) |
-|`SetLastError`                 |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/errhandlingapi/nf-errhandlingapi-setlasterror) |
-|`SetThreadPriority`            |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-setthreadpriority) |
-|`SwitchToThread`               |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-switchtothread) |
-|`TerminateProcess`             |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-terminateprocess) |
-|`TlsAlloc`                     |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-tlsalloc) |
-|`TlsGetValue`                  |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-tlsgetvalue) |
-|`TlsGetValue2`                 |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-tlsgetvalue2) |
-|`TlsSetValue`                  |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-tlssetvalue) |
-|`VirtualProtect`               |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-virtualprotect) |
-|`WriteConsoleW`                |KERNEL32        |[Windows API](https://learn.microsoft.com/en-us/windows/console/writeconsole) |
+#### KERNEL32.DLL
+
+|Function                           |Availability    |Documentation             |
+|:----------------------------------|:---------------|:-------------------------|
+|`BaseGetNamedObjectDirectory`      |Windows 7       |Undocumented |
+|`CreateThread`                     |All             |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createthread) |
+|`DecodePointer`                    |Windows XP SP2  |[Windows API](https://learn.microsoft.com/en-us/previous-versions/bb432242(v=vs.85)) |
+|`EncodePointer`                    |Windows XP SP2  |[Windows API](https://learn.microsoft.com/en-us/previous-versions/bb432254(v=vs.85)) |
+|`ExitThread`                       |All             |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-exitthread) |
+|`FormatMessageW`                   |All             |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-formatmessagew) |
+|`GetLastError`                     |All             |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/errhandlingapi/nf-errhandlingapi-getlasterror) |
+|`GetModuleFileNameW`               |All             |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-getmodulefilenamew) |
+|`GetProcAddress`                   |All             |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-getprocaddress) |
+|`GetProcessHeap`                   |All             |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/heapapi/nf-heapapi-getprocessheap) |
+|`GetStdHandle`                     |All             |[Windows API](https://learn.microsoft.com/en-us/windows/console/getstdhandle) |
+|`GetSystemInfo`                    |All             |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/sysinfoapi/nf-sysinfoapi-getsysteminfo) |
+|`GetSystemTimeAsFileTime`          |Windows NT 3.5  |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/sysinfoapi/nf-sysinfoapi-getsystemtimeasfiletime) |
+|`GetThreadPriority`                |All             |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-getthreadpriority) |
+|`GetTickCount64`                   |Windows Vista   |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/sysinfoapi/nf-sysinfoapi-gettickcount64) |
+|`HeapAlloc`                        |All             |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/heapapi/nf-heapapi-heapalloc) |
+|`HeapFree`                         |All             |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/heapapi/nf-heapapi-heapfree) |
+|`HeapReAlloc`                      |All             |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/heapapi/nf-heapapi-heaprealloc) |
+|`HeapSetInformation`               |Windows XP      |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/heapapi/nf-heapapi-heapsetinformation) |
+|`HeapSize`                         |All             |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/heapapi/nf-heapapi-heapsize) |
+|`LoadLibraryExW`                   |All             |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-loadlibraryexw) |
+|`QueryPerformanceCounter`          |Windows NT 3.1  |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/profileapi/nf-profileapi-queryperformancecounter) |
+|`QueryPerformanceFrequency`        |Windows NT 3.1  |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/profileapi/nf-profileapi-queryperformancefrequency) |
+|`QueryUnbiasedInterruptTime`       |Windows 7       |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/realtimeapiset/nf-realtimeapiset-queryunbiasedinterrupttime) |
+|`RaiseFailFastException`           |Windows 7       |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/errhandlingapi/nf-errhandlingapi-raisefailfastexception) |
+|`SetConsoleCtrlHandler`            |All             |[Windows API](https://learn.microsoft.com/en-us/windows/console/setconsolectrlhandler) |
+|`SetLastError`                     |All             |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/errhandlingapi/nf-errhandlingapi-setlasterror) |
+|`SetThreadPriority`                |All             |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-setthreadpriority) |
+|`SwitchToThread`                   |Windows NT 4.0  |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-switchtothread) |
+|`TerminateProcess`                 |All             |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-terminateprocess) |
+|`TlsAlloc`                         |All             |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-tlsalloc) |
+|`TlsGetValue`                      |All             |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-tlsgetvalue) |
+|`TlsGetValue2` <sub>optional</sub> |Windows 11 24H2 |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-tlsgetvalue2) |
+|`TlsSetValue`                      |All             |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-tlssetvalue) |
+|`VirtualProtect`                   |All             |[Windows API](https://learn.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-virtualprotect) |
+|`WriteConsoleW`                    |All             |[Windows API](https://learn.microsoft.com/en-us/windows/console/writeconsole) |
+
+#### NTDLL.DLL
+
+|Function                       |Availability  |Documentation             |
+|:------------------------------|:-------------|:-------------------------|
+|`NtClose`                      |All           |[Windows Driver API](https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/nf-wdm-zwclose) |
+|`NtCreateSection`              |All           |[Windows Driver API](https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/nf-wdm-zwcreatesection) |
+|`NtDelayExecution`             |All           |Undocumented |
+|`NtDuplicateObject`            |All           |[Windows Driver API](https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/ntifs/nf-ntifs-zwduplicateobject) |
+|`NtMapViewOfSection`           |All           |[Windows Driver API](https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/nf-wdm-zwmapviewofsection) |
+|`NtRaiseHardError`             |All           |Undocumented |
+|`NtReleaseKeyedEvent`          |Windows XP    |Undocumented |
+|`NtUnmapViewOfSection`         |All           |[Windows Driver API](https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/nf-wdm-zwunmapviewofsection) |
+|`NtWaitForKeyedEvent`          |Windows XP    |Undocumented |
+|`NtWaitForSingleObject`        |All           |[Windows Driver API](https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/ntifs/nf-ntifs-zwwaitforsingleobject) |
+|`RtlDllShutdownInProgress`     |Windows XP    |[Windows API](https://learn.microsoft.com/en-us/windows/win32/devnotes/rtldllshutdowninprogress)|
+|`RtlFillMemory`                |All           |[Windows Driver API](https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/nf-wdm-rtlfillmemory) |
+|`RtlMoveMemory`                |All           |[Windows Driver API](https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/nf-wdm-rtlmovememory) |
+|`RtlNtStatusToDosError`        |All           |[Windows Driver API](https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/ntifs/nf-ntifs-rtlntstatustodoserror) |
+|`RtlZeroMemory`                |All           |[Windows Driver API](https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/nf-wdm-rtlzeromemory) |
