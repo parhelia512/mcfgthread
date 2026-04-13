@@ -215,8 +215,8 @@ NtRaiseHardError(
 typedef void __stdcall typeof_GetSystemTimePreciseAsFileTime(FILETIME*);
 typedef LPVOID __stdcall typeof_TlsGetValue2(ULONG);
 
-#define __MCF_LAZY_D_(name)   typeof_##name* f_##name
-#define __MCF_LAZY_P_(name)   f_##name
+#define __MCF_LAZY_D_(name)   typeof_##name* imp_##name
+#define __MCF_LAZY_P_(name)   imp_##name
 
 __MCF_ALWAYS_INLINE
 FARPROC
