@@ -63,7 +63,8 @@ do_win32_thread_routine(LPVOID param)
 
 __MCF_DLLEXPORT
 _MCF_thread*
-_MCF_thread_new_aligned(_MCF_thread_procedure* proc, size_t align, const void* data_opt, size_t size)
+_MCF_thread_new_aligned(_MCF_thread_procedure* proc, size_t align, const void* data_opt,
+                        size_t size)
   {
     if(!proc)
       return __MCF_win32_error_p(ERROR_INVALID_PARAMETER, nullptr);

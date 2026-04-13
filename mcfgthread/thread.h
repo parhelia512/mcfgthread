@@ -74,7 +74,8 @@ enum __MCF_thread_priority __MCF_CXX11(: int)
  * via `_MCF_get_win32_error()`.  */
 __MCF_THREAD_IMPORT
 _MCF_thread*
-_MCF_thread_new_aligned(_MCF_thread_procedure* __proc, size_t __align, const void* __data_opt, size_t __size)
+_MCF_thread_new_aligned(_MCF_thread_procedure* __proc, size_t __align, const void* __data_opt,
+                        size_t __size)
   __MCF_noexcept;
 
 __MCF_THREAD_INLINE
