@@ -430,7 +430,21 @@ __MCF_XGLOBALS_IMPORT
 void
 __MCF_gthread_on_thread_exit(void);
 
-/* Declare global data.  */
+/* These are constants that have to be initialized at load time.  */
+extern __MCF_ALIGNED(8) __MCF_BR(GUID) const __MCF_crt_gthread_guid;
+extern SYSTEM_INFO __MCF_XGLOBALS_READONLY __MCF_crt_sysinfo;
+extern double __MCF_XGLOBALS_READONLY __MCF_crt_pf_recip;
+extern HANDLE __MCF_XGLOBALS_READONLY __MCF_crt_heap;
+extern HMODULE __MCF_XGLOBALS_READONLY __MCF_crt_ntdll;
+extern HMODULE __MCF_XGLOBALS_READONLY __MCF_crt_kernel32;
+extern typeof_TlsGetValue2* __MCF_XGLOBALS_READONLY __MCF_crt_TlsGetValue;
+
+/* Declare the structure of global data in named shared memory. As mcfgthread
+ * may be linked statically by user DLLs, we must ensure that, in the same
+ * process, all instances of `__MCF_g` (see below) point to the same object.
+ * This is achieved by having them point to a named shared memory object, which
+ * is created with exclusive access with a name that is generated from its PID.
+ * Additional randomness is introduced to make the name unpredictable.  */
 struct __MCF_xglobals
   {
     __MCF_xglobals* self_ptr;
@@ -462,6 +476,10 @@ struct __MCF_xglobals
     __MCF_thread_base thread_oom_self_st;
   };
 
+/* This is a pointer to the process-specific named shared memory in the
+ * current module.  */
+extern __MCF_xglobals* __MCF_XGLOBALS_READONLY restrict __MCF_g;
+
 /* Ensure we don't mess things up.  */
 __MCF_STATIC_ASSERT(offsetof(__MCF_xglobals, self_ptr) == 0);
 __MCF_STATIC_ASSERT(offsetof(__MCF_xglobals, self_size) == __MCF_64_32(8, 4));
@@ -476,24 +494,6 @@ __MCF_STATIC_ASSERT(offsetof(__MCF_xglobals, interrupt_cond) == __MCF_64_32(6784
 __MCF_STATIC_ASSERT(offsetof(__MCF_xglobals, f_GetSystemTimePreciseAsFileTime) == __MCF_64_32(6792, 4420));
 __MCF_STATIC_ASSERT(offsetof(__MCF_xglobals, thread_oom_mtx) == __MCF_64_32(6808, 4428));
 __MCF_STATIC_ASSERT(offsetof(__MCF_xglobals, thread_oom_self_st) == __MCF_64_32(6816, 4432));
-
-/* These are constants that have to be initialized at load time.  */
-extern __MCF_ALIGNED(8) __MCF_BR(GUID) const __MCF_crt_gthread_guid;
-extern SYSTEM_INFO __MCF_XGLOBALS_READONLY __MCF_crt_sysinfo;
-extern double __MCF_XGLOBALS_READONLY __MCF_crt_pf_recip;
-extern HANDLE __MCF_XGLOBALS_READONLY __MCF_crt_heap;
-extern HMODULE __MCF_XGLOBALS_READONLY __MCF_crt_ntdll;
-extern HMODULE __MCF_XGLOBALS_READONLY __MCF_crt_kernel32;
-extern typeof_TlsGetValue2* __MCF_XGLOBALS_READONLY __MCF_crt_TlsGetValue;
-
-/* This is a pointer to the process-specific data.
- * As mcfgthread may be linked statically by user DLLs, we must ensure that, in
- * the same process, all instances of this pointer point to the same object. This
- * is achieved by having them point to a named file mapping, which is created
- * by the current process with exclusive access, and whose name is generated from
- * its process ID. Additional randomness is introduced to prevent the name from
- * being predicted.  */
-extern __MCF_xglobals* __MCF_XGLOBALS_READONLY restrict __MCF_g;
 
 /* As `__MCF_xglobals` is shared between all static and shared instances of
  * this library within a single process, we have to involve sort of versioning.  */
