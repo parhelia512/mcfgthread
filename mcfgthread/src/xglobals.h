@@ -456,7 +456,7 @@ extern __MCF_xglobals* __MCF_XGLOBALS_READONLY restrict __MCF_g;
 #define __MCF_G(field)        (__MCF_g->field)
 #define __MCF_G_OPT(field)    (__MCF_HAS_G(opt_##field) ? &(__MCF_g->opt_##field) : nullptr)
 
-/* A `imp_` field is a pointer. For a dynamic load symbol to exist, the field
+/* An `imp_` field is a pointer. For a dynamic load symbol to exist, the field
  * must exist, and must contain a non-null value.  */
 #define __MCF_HAS_G_IMP(name)   (__MCF_HAS_G(imp_##name) && __MCF_g->imp_##name)
 #define __MCF_G_IMP(name)       (*(__MCF_g->imp_##name))
