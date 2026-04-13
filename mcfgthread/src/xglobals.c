@@ -337,8 +337,10 @@ __MCF_gthread_initialize_globals(void)
     __MCF_crt_ntdll = LoadLibraryExW(L"NTDLL.DLL", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
     __MCF_crt_kernel32 = LoadLibraryExW(L"KERNEL32.DLL", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
 
-    __MCF_crt_TlsGetValue = TlsGetValue;
-    __MCF_LAZY_LOAD(&__MCF_crt_TlsGetValue, __MCF_crt_kernel32, TlsGetValue2);
+    /* This function is available since Windows 11 24H2. It has the same
+     * signature as `TlsGetValue()`, so the latter can be used as a backup.  */
+    FARPROC dll_fn = GetProcAddress(__MCF_crt_kernel32, "TlsGetValue2");
+    __MCF_crt_TlsGetValue = dll_fn ? __MCF_CAST_PTR(typeof_TlsGetValue2, dll_fn) : TlsGetValue;
 
     /* Generate the unique name for this process.  */
     static WCHAR gnbuffer[] = L"Local\\__MCF_crt_xglobals_*?pid???_#?cookie????????";
@@ -379,8 +381,9 @@ __MCF_gthread_initialize_globals(void)
     __MCF_G(tls_index) = TlsAlloc();
     __MCF_CHECK(__MCF_G(tls_index) != TLS_OUT_OF_INDEXES);
 
-    /* Perform lazy binding for newer functions.  */
-    __MCF_G_SET_LAZY(__MCF_crt_kernel32, GetSystemTimePreciseAsFileTime);  /* win8 */
+    /* This function is available since Windows 8.  */
+    dll_fn = GetProcAddress(__MCF_crt_kernel32, "GetSystemTimePreciseAsFileTime");
+    __MCF_G(imp_GetSystemTimePreciseAsFileTime) = (void*) dll_fn;
 
     /* Attach the main thread and make it joinable. The structure should
      * be all zeroes so no initialization is necessary.  */
