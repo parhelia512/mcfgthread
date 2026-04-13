@@ -470,7 +470,7 @@ struct __MCF_xglobals
 
     /* WARNING: Fields hereinafter must be accessed via `__MCF_G_OPT`!  */
     __MCF_LAZY_D_(GetSystemTimePreciseAsFileTime);
-    void* obsolete_f_QueryInterruptTime;
+    void* reserved_for_QueryInterruptTime;
 
     __MCF_BR(_MCF_mutex) thread_oom_mtx;
     __MCF_thread_base thread_oom_self_st;
@@ -492,6 +492,7 @@ __MCF_STATIC_ASSERT(offsetof(__MCF_xglobals, quick_exit_queue) == __MCF_64_32(31
 __MCF_STATIC_ASSERT(offsetof(__MCF_xglobals, mutex_spin_field) == __MCF_64_32(4736, 2368));
 __MCF_STATIC_ASSERT(offsetof(__MCF_xglobals, interrupt_cond) == __MCF_64_32(6784, 4416));
 __MCF_STATIC_ASSERT(offsetof(__MCF_xglobals, imp_GetSystemTimePreciseAsFileTime) == __MCF_64_32(6792, 4420));
+__MCF_STATIC_ASSERT(offsetof(__MCF_xglobals, reserved_for_QueryInterruptTime) == __MCF_64_32(6800, 4424));
 __MCF_STATIC_ASSERT(offsetof(__MCF_xglobals, thread_oom_mtx) == __MCF_64_32(6808, 4428));
 __MCF_STATIC_ASSERT(offsetof(__MCF_xglobals, thread_oom_self_st) == __MCF_64_32(6816, 4432));
 
