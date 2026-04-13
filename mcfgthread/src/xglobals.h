@@ -214,28 +214,6 @@ NtRaiseHardError(
 typedef void __stdcall typeof_GetSystemTimePreciseAsFileTime(FILETIME*);
 typedef LPVOID __stdcall typeof_TlsGetValue2(ULONG);
 
-#define __MCF_LAZY_D_(name)   typeof_##name* imp_##name
-#define __MCF_LAZY_P_(name)   imp_##name
-
-__MCF_ALWAYS_INLINE
-FARPROC
-__MCF_do_lazy_load(FARPROC* out, HMODULE dll, const char* name)
-  {
-    if(!dll)
-      return nullptr;
-
-    FARPROC ptr = GetProcAddress(dll, name);
-    if(!ptr)
-      return nullptr;
-
-    __MCF_SET_IF(out, ptr);
-    return ptr;
-  }
-
-#define __MCF_LAZY_LOAD(out, dll, name)  \
-    (__MCF_CAST_PTR(typeof_##name,  \
-        __MCF_do_lazy_load(__MCF_CAST_PTR(FARPROC, out), dll, #name)))
-
 /* Declare helper functions here.  */
 __MCF_XGLOBALS_IMPORT
 EXCEPTION_DISPOSITION
@@ -466,12 +444,23 @@ struct __MCF_xglobals
     void* reserved_for_QueryInterruptTime;
 
     __MCF_BR(_MCF_mutex) thread_oom_mtx;
-    __MCF_thread_base thread_oom_self_st;
+    __MCF_thread_base opt_thread_oom_self_st;
   };
 
 /* This is a pointer to the process-specific named shared memory in the
  * current module.  */
 extern __MCF_xglobals* __MCF_XGLOBALS_READONLY restrict __MCF_g;
+
+/* Get a field from named shared memory with version checking.  */
+#define __MCF_HAS_G(field)    (__MCF_g->self_size >= offsetof(__MCF_xglobals, field) + sizeof(__MCF_g->field))
+#define __MCF_G(field)        (__MCF_g->field)
+#define __MCF_G_OPT(field)    (__MCF_HAS_G(opt_##field) ? &(__MCF_g->opt_##field) : nullptr)
+
+/* A `imp_` field is a pointer. For a dynamic load symbol to exist, the field
+ * must exist, and must contain a non-null value.  */
+#define __MCF_HAS_G_IMP(name)   (__MCF_HAS_G(imp_##name) && __MCF_g->imp_##name)
+#define __MCF_G_IMP(name)       (*(__MCF_g->imp_##name))
+#define __MCF_G_IMP_OPT(name)   (__MCF_HAS_G(imp_##name) ? __MCF_g->imp_##name : nullptr)
 
 /* Ensure we don't mess things up.  */
 __MCF_STATIC_ASSERT(offsetof(__MCF_xglobals, self_ptr) == 0);
@@ -487,18 +476,7 @@ __MCF_STATIC_ASSERT(offsetof(__MCF_xglobals, interrupt_cond) == __MCF_64_32(6784
 __MCF_STATIC_ASSERT(offsetof(__MCF_xglobals, imp_GetSystemTimePreciseAsFileTime) == __MCF_64_32(6792, 4420));
 __MCF_STATIC_ASSERT(offsetof(__MCF_xglobals, reserved_for_QueryInterruptTime) == __MCF_64_32(6800, 4424));
 __MCF_STATIC_ASSERT(offsetof(__MCF_xglobals, thread_oom_mtx) == __MCF_64_32(6808, 4428));
-__MCF_STATIC_ASSERT(offsetof(__MCF_xglobals, thread_oom_self_st) == __MCF_64_32(6816, 4432));
-
-/* As `__MCF_xglobals` is shared between all static and shared instances of
- * this library within a single process, we have to involve sort of versioning.  */
-#define __MCF_G(field)     (__MCF_g->field)
-#define __MCF_G_OPT(field)  ((__MCF_g->self_size >= offsetof(__MCF_xglobals, field)  \
-                                                    + sizeof(__MCF_g->field))  \
-                             ? &(__MCF_g->field) : nullptr)
-
-#define __MCF_G_IMP(name)          (*(__MCF_G(__MCF_LAZY_P_(name))))
-#define __MCF_G_IMP_OPT(name)       (__MCF_G_OPT(__MCF_LAZY_P_(name)) ? __MCF_G(__MCF_LAZY_P_(name)) : nullptr)
-#define __MCF_G_SET_LAZY(dll, name)   __MCF_LAZY_LOAD(&(__MCF_G(__MCF_LAZY_P_(name))), dll, name)
+__MCF_STATIC_ASSERT(offsetof(__MCF_xglobals, opt_thread_oom_self_st) == __MCF_64_32(6816, 4432));
 
 /* Define inline functions after all declarations.
  * We would like to keep them away from declarations for conciseness, which also
