@@ -24,7 +24,7 @@ main(void)
       return 77;  // skip
 
     // https://learn.microsoft.com/en-us/windows/win32/api/sysinfoapi/nf-sysinfoapi-getsystemtimepreciseasfiletime
-    void* fn = (void*) __MCF_G_LAZY(GetSystemTimePreciseAsFileTime);
+    void* fn = (void*) __MCF_G_IMP_OPT(GetSystemTimePreciseAsFileTime);
     fprintf(stderr, "GetSystemTimePreciseAsFileTime = %p\n", fn);
     assert(fn == (void*) GetProcAddress(kernel32, "GetSystemTimePreciseAsFileTime"));
   }

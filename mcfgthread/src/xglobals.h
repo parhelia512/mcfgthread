@@ -502,7 +502,7 @@ extern __MCF_crt_xglobals* __MCF_XGLOBALS_READONLY restrict __MCF_g;
                                                     + sizeof(__MCF_g->field))  \
                              ? &(__MCF_g->field) : nullptr)
 
-#define __MCF_G_LAZY(name)          (*(__MCF_G(__MCF_LAZY_P_(name))))
+#define __MCF_G_IMP_OPT(name)          (*(__MCF_G(__MCF_LAZY_P_(name))))
 #define __MCF_G_HAS_LAZY(name)       (__MCF_G_OPT(__MCF_LAZY_P_(name)) && __MCF_G(__MCF_LAZY_P_(name)))
 #define __MCF_G_SET_LAZY(dll, name)   __MCF_LAZY_LOAD(&(__MCF_G(__MCF_LAZY_P_(name))), dll, name)
 

@@ -44,12 +44,12 @@ mcfgthread_src_ex = [
   'mcfgthread/src/libcxx.c' ]
 
 test_src = [
-  'test/lazy_load.c', 'test/self_oom.c', 'test/mix.c', 'test/memory.c', 'test/clock.c',
+  'test/optional_imports.c', 'test/self_oom.c', 'test/mix.c', 'test/memory.c',
   'test/winnt_timeout.c', 'test/runtime_failure.c', 'test/xglobals_name.c',
   'test/seh_terminate.c', 'test/teb.c', 'test/teb_att.c', 'test/once_zero_timeout.c',
   'test/once_release.c', 'test/once_abort.c', 'test/once_timeout.c',
   'test/mutex_spin_fail_fast.c', 'test/mutex_spin_fail_slow.c',
-  'test/mutex_zero_timeout.c', 'test/mutex_timeout.c',
+  'test/mutex_zero_timeout.c', 'test/mutex_timeout.c', 'test/clock.c',
   'test/mutex.c', 'test/shared_mutex_zero_timeout.c', 'test/shared_mutex_timeout.c',
   'test/shared_mutex_shared.c', 'test/shared_mutex_shared_too_many.c',
   'test/shared_mutex_exclusive.c', 'test/cond_timeout.c', 'test/cond_multi_wait.c',
@@ -307,7 +307,7 @@ foreach src : test_src
   test_link_args = []
   test_link_with = lib_mcfgthread_dll
 
-  if src in [ 'test/lazy_load.c', 'test/self_oom.c', 'test/mix.c',
+  if src in [ 'test/optional_imports.c', 'test/self_oom.c', 'test/mix.c',
               'test/xglobals_name.c', 'test/tls_dtor_static.c' ]
     test_link_with = lib_mcfgthread_a
   endif
