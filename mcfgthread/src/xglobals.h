@@ -210,8 +210,7 @@ NtRaiseHardError(
       .Buffer = (void*) ((s) + __MCF_STATIC_ASSERT_0(  \
          !__builtin_types_compatible_p(__typeof__(1+&*(s)), __typeof__(s))))  }
 
-/* Define macros and types for lazy binding. If a symbol cannot be found
- * during process startup, it shall be initialized to a null pointer.  */
+/* Define prototypes for optional dependencies.  */
 typedef void __stdcall typeof_GetSystemTimePreciseAsFileTime(FILETIME*);
 typedef LPVOID __stdcall typeof_TlsGetValue2(ULONG);
 
@@ -451,25 +450,19 @@ struct __MCF_xglobals
     uint32_t self_size;
     uint32_t tls_index;
 
-    /* the static thread object  */
     __MCF_BR(__MCF_thread_base) main_thread;
-
-    /* `atexit()` support  */
     __MCF_BR(_MCF_mutex) exit_mtx;
     __MCF_BR(__MCF_dtor_queue) exit_queue;
-
-    /* `at_quick_exit()` support  */
     __MCF_BR(_MCF_mutex) quick_exit_mtx;
     __MCF_BR(__MCF_dtor_queue) quick_exit_queue;
-
-    /* mutex support  */
     __MCF_ALIGNED(64) bool mutex_spin_field[2048];
-
-    /* thread suspension support  */
     __MCF_BR(_MCF_cond) interrupt_cond;
 
-    /* WARNING: Fields hereinafter must be accessed via `__MCF_G_OPT`!  */
-    __MCF_LAZY_D_(GetSystemTimePreciseAsFileTime);
+    /* Fields after this line were added after the first release of mcfgthread.
+     * In a process which loads a DLL that is linked against an old static copy of
+     * mcfgthread, these might be missing from the named shared memory object, and
+     * must be accessed with `__MCF_G_OPT()`.  */
+    typeof_GetSystemTimePreciseAsFileTime* imp_GetSystemTimePreciseAsFileTime;
     void* reserved_for_QueryInterruptTime;
 
     __MCF_BR(_MCF_mutex) thread_oom_mtx;
