@@ -68,17 +68,26 @@ _MCF_thread_new_aligned(_MCF_thread_procedure* proc, size_t align, const void* d
   {
     if(!proc)
       return __MCF_win32_error_p(ERROR_INVALID_PARAMETER, nullptr);
-    else if(align & (align - 1))  /* power of two?  */
+    else if(align & (align - 1))  /* power of two, or zero?  */
       return __MCF_win32_error_p(ERROR_INVALID_PARAMETER, nullptr);
     else if(align > __MCF_THREAD_MAX_DATA_ALIGNMENT)
       return __MCF_win32_error_p(ERROR_NOT_SUPPORTED, nullptr);
     else if(size > 0x8000000U - __MCF_THREAD_MAX_DATA_ALIGNMENT)
       return __MCF_win32_error_p(ERROR_ARITHMETIC_OVERFLOW, nullptr);
 
+    /* Calculate the number of bytes to allocate for the thread control structure
+     * and user-defined data. If the user-defined data should be over-aligned,
+     * over-allocate some, which will be given back later.  */
     size_t size_need = sizeof(__MCF_thread_base) + size;
-    size_t real_align = _MCF_maxz(__MCF_THREAD_DATA_ALIGNMENT, align);
-    size_t size_request = size_need + real_align - MEMORY_ALLOCATION_ALIGNMENT;
-    __MCF_ASSERT(size_need <= size_request);
+    size_t real_align = 0;
+    size_t size_request = size_need;
+
+    if(size != 0) {
+      __MCF_ASSERT(MEMORY_ALLOCATION_ALIGNMENT <= __MCF_THREAD_DATA_ALIGNMENT);
+      real_align = _MCF_maxz(__MCF_THREAD_DATA_ALIGNMENT, align);
+      size_request = size_need + real_align - MEMORY_ALLOCATION_ALIGNMENT;
+      __MCF_ASSERT(size_need <= size_request);
+    }
 
     /* Allocate and initialize the thread control structure.  */
     thread_init init;
