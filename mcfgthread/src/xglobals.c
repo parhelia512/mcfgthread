@@ -357,7 +357,7 @@ __MCF_gthread_initialize_globals(void)
     /* Allocate or open storage for global data. We are in the DLL main routine,
      * so locking is not necessary. Unlike `CreateFileMappingW()`, the handle
      * and view shall not be inherited by child processes.  */
-    HANDLE gfile = __MCF_create_named_section(&gattrs, sizeof(__MCF_crt_xglobals));
+    HANDLE gfile = __MCF_create_named_section(&gattrs, sizeof(__MCF_xglobals));
     __MCF_CHECK(gfile);
     __MCF_g = __MCF_map_view_of_section(gfile, false);
     __MCF_CHECK(__MCF_g);
@@ -373,7 +373,7 @@ __MCF_gthread_initialize_globals(void)
 
     /* The region is new, so initialize it.  */
     __MCF_g->self_ptr = __MCF_g;
-    __MCF_g->self_size = sizeof(__MCF_crt_xglobals);
+    __MCF_g->self_size = sizeof(__MCF_xglobals);
 
     /* Allocate a TLS slot for this library.  */
     __MCF_G(tls_index) = TlsAlloc();
@@ -457,7 +457,7 @@ typeof_TlsGetValue2* __MCF_crt_TlsGetValue = __MCF_BAD_PTR;
  * all instances of this pointer in the same process should point to the
  * same memory. The initializer prevents it from being placed into the
  * `.bss` section.  */
-__MCF_crt_xglobals* restrict __MCF_g = __MCF_BAD_PTR;
+__MCF_xglobals* restrict __MCF_g = __MCF_BAD_PTR;
 
 #ifdef __MCF_IN_DLL
 

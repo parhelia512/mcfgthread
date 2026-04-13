@@ -310,7 +310,7 @@ __MCF_invoke_cxa_dtor(__MCF_cxa_dtor_any_ dtor, void* arg)
 #endif  /* !defined __MCF_M_X8632 */
 
 typedef struct __MCF_winnt_timeout __MCF_winnt_timeout;
-typedef struct __MCF_crt_xglobals __MCF_crt_xglobals;
+typedef struct __MCF_xglobals __MCF_xglobals;
 
 /* This structure contains timeout values that will be passed to NT syscalls.  */
 struct __MCF_winnt_timeout
@@ -431,9 +431,9 @@ void
 __MCF_gthread_on_thread_exit(void);
 
 /* Declare global data.  */
-struct __MCF_crt_xglobals
+struct __MCF_xglobals
   {
-    __MCF_crt_xglobals* self_ptr;
+    __MCF_xglobals* self_ptr;
     uint32_t self_size;
     uint32_t tls_index;
 
@@ -463,19 +463,19 @@ struct __MCF_crt_xglobals
   };
 
 /* Ensure we don't mess things up.  */
-__MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, self_ptr) == 0);
-__MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, self_size) == __MCF_64_32(8, 4));
-__MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, tls_index) == __MCF_64_32(12, 8));
-__MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, main_thread) == __MCF_64_32(16, 16));
-__MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, exit_mtx) == __MCF_64_32(1616, 816));
-__MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, exit_queue) == __MCF_64_32(1624, 820));
-__MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, quick_exit_mtx) == __MCF_64_32(3152, 1584));
-__MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, quick_exit_queue) == __MCF_64_32(3160, 1588));
-__MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, mutex_spin_field) == __MCF_64_32(4736, 2368));
-__MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, interrupt_cond) == __MCF_64_32(6784, 4416));
-__MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, f_GetSystemTimePreciseAsFileTime) == __MCF_64_32(6792, 4420));
-__MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, thread_oom_mtx) == __MCF_64_32(6808, 4428));
-__MCF_STATIC_ASSERT(offsetof(__MCF_crt_xglobals, thread_oom_self_st) == __MCF_64_32(6816, 4432));
+__MCF_STATIC_ASSERT(offsetof(__MCF_xglobals, self_ptr) == 0);
+__MCF_STATIC_ASSERT(offsetof(__MCF_xglobals, self_size) == __MCF_64_32(8, 4));
+__MCF_STATIC_ASSERT(offsetof(__MCF_xglobals, tls_index) == __MCF_64_32(12, 8));
+__MCF_STATIC_ASSERT(offsetof(__MCF_xglobals, main_thread) == __MCF_64_32(16, 16));
+__MCF_STATIC_ASSERT(offsetof(__MCF_xglobals, exit_mtx) == __MCF_64_32(1616, 816));
+__MCF_STATIC_ASSERT(offsetof(__MCF_xglobals, exit_queue) == __MCF_64_32(1624, 820));
+__MCF_STATIC_ASSERT(offsetof(__MCF_xglobals, quick_exit_mtx) == __MCF_64_32(3152, 1584));
+__MCF_STATIC_ASSERT(offsetof(__MCF_xglobals, quick_exit_queue) == __MCF_64_32(3160, 1588));
+__MCF_STATIC_ASSERT(offsetof(__MCF_xglobals, mutex_spin_field) == __MCF_64_32(4736, 2368));
+__MCF_STATIC_ASSERT(offsetof(__MCF_xglobals, interrupt_cond) == __MCF_64_32(6784, 4416));
+__MCF_STATIC_ASSERT(offsetof(__MCF_xglobals, f_GetSystemTimePreciseAsFileTime) == __MCF_64_32(6792, 4420));
+__MCF_STATIC_ASSERT(offsetof(__MCF_xglobals, thread_oom_mtx) == __MCF_64_32(6808, 4428));
+__MCF_STATIC_ASSERT(offsetof(__MCF_xglobals, thread_oom_self_st) == __MCF_64_32(6816, 4432));
 
 /* These are constants that have to be initialized at load time.  */
 extern __MCF_ALIGNED(8) __MCF_BR(GUID) const __MCF_crt_gthread_guid;
@@ -493,12 +493,12 @@ extern typeof_TlsGetValue2* __MCF_XGLOBALS_READONLY __MCF_crt_TlsGetValue;
  * by the current process with exclusive access, and whose name is generated from
  * its process ID. Additional randomness is introduced to prevent the name from
  * being predicted.  */
-extern __MCF_crt_xglobals* __MCF_XGLOBALS_READONLY restrict __MCF_g;
+extern __MCF_xglobals* __MCF_XGLOBALS_READONLY restrict __MCF_g;
 
-/* As `__MCF_crt_xglobals` is shared between all static and shared instances of
+/* As `__MCF_xglobals` is shared between all static and shared instances of
  * this library within a single process, we have to involve sort of versioning.  */
 #define __MCF_G(field)     (__MCF_g->field)
-#define __MCF_G_OPT(field)  ((__MCF_g->self_size >= offsetof(__MCF_crt_xglobals, field)  \
+#define __MCF_G_OPT(field)  ((__MCF_g->self_size >= offsetof(__MCF_xglobals, field)  \
                                                     + sizeof(__MCF_g->field))  \
                              ? &(__MCF_g->field) : nullptr)
 
