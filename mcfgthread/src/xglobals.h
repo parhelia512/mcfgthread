@@ -453,13 +453,13 @@ extern __MCF_xglobals* __MCF_XGLOBALS_READONLY restrict __MCF_g;
 
 /* Get a field from named shared memory with version checking.  */
 #define __MCF_HAS_G(field)    (__MCF_g->self_size >= offsetof(__MCF_xglobals, field) + sizeof(__MCF_g->field))
-#define __MCF_G(field)        (__MCF_g->field)
+#define __MCF_G(field)        (*(__MCF_ASSERT(__MCF_HAS_G(field)), &(__MCF_g->field)))
 #define __MCF_G_OPT(field)    (__MCF_HAS_G(opt_##field) ? &(__MCF_g->opt_##field) : nullptr)
 
 /* An `imp_` field is a pointer. For a dynamic load symbol to exist, the field
  * must exist, and must contain a non-null value.  */
 #define __MCF_HAS_G_IMP(name)   (__MCF_HAS_G(imp_##name) && __MCF_g->imp_##name)
-#define __MCF_G_IMP(name)       (*(__MCF_g->imp_##name))
+#define __MCF_G_IMP(name)       (*(__MCF_ASSERT(__MCF_HAS_G_IMP(name)), __MCF_g->imp_##name))
 #define __MCF_G_IMP_OPT(name)   (__MCF_HAS_G(imp_##name) ? __MCF_g->imp_##name : nullptr)
 
 /* Ensure we don't mess things up.  */
