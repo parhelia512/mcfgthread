@@ -165,6 +165,14 @@ if get_option('enable-debug-checks')
   add_project_arguments('-D__MCF_DEBUG', language: [ 'c', 'cpp' ])
 endif
 
+if get_option('enable-gc-sections')
+  if cc.get_linker_id() in [ 'link', 'lld-link' ]
+    add_project_link_arguments('-Wl,-opt:ref', language: [ 'c', 'cpp' ])
+  else
+    add_project_link_arguments('-Wl,--gc-sections', language: [ 'c', 'cpp' ])
+  endif
+endif
+
 #===========================================================
 # Rules for headers
 #===========================================================
@@ -225,17 +233,11 @@ if cc.get_linker_id() in [ 'link', 'lld-link' ]
         '-Wl,-opt:icf', '-Wl,-safeseh:no',
         '-Wl,-nodefaultlib', '-Wl,-dynamicbase', '-Wl,-nxcompat', '-Wl,-kill-at',
         '-Xlinker', '-subsystem:windows,6.1' ]
-  if get_option('enable-gc-sections')
-    lib_mcfgthread_dll_link_args += [ '-Wl,-opt:ref' ]
-  endif
 else
   lib_mcfgthread_dll_link_args = [
         '-Wl,--exclude-all-symbols', '-Wl,--disable-auto-import',
         '-nostdlib', '-Wl,--dynamicbase', '-Wl,--nxcompat', '-Wl,--kill-at',
         '-Wl,--subsystem,windows:6.1' ]
-  if get_option('enable-gc-sections')
-    lib_mcfgthread_dll_link_args += [ '-Wl,--gc-sections' ]
-  endif
 endif
 
 if meson.version().version_compare('< 1.10.0')
