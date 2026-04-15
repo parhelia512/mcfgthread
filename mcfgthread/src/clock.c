@@ -44,7 +44,7 @@ __MCF_DLLEXPORT
 double
 _MCF_hires_utc_now(void)
   {
-    if(__MCF_G_IMP_OPT(GetSystemTimePreciseAsFileTime)) {
+    if(__MCF_HAS_G_IMP(GetSystemTimePreciseAsFileTime)) {
       /* This is available since Windows 8.  */
       ULONGLONG ull;
       __MCF_G_IMP(GetSystemTimePreciseAsFileTime) ((FILETIME*) &ull);
