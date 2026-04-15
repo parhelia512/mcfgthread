@@ -3,7 +3,8 @@
         {
             "name": "MINGW32",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/mcfgthread",
+                "${workspaceFolder}/build_debug"
             ],
             "defines": [
                 "_DEBUG",
@@ -18,7 +19,8 @@
         {
             "name": "MINGW64",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/mcfgthread",
+                "${workspaceFolder}/build_debug"
             ],
             "defines": [
                 "_DEBUG",
@@ -33,7 +35,8 @@
         {
             "name": "UCRT64",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/mcfgthread",
+                "${workspaceFolder}/build_debug"
             ],
             "defines": [
                 "_DEBUG",
@@ -48,7 +51,8 @@
         {
             "name": "CLANG64",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/mcfgthread",
+                "${workspaceFolder}/build_debug"
             ],
             "defines": [
                 "_DEBUG",
@@ -63,7 +67,8 @@
         {
             "name": "CLANGARM64",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/mcfgthread",
+                "${workspaceFolder}/build_debug"
             ],
             "defines": [
                 "_DEBUG",
