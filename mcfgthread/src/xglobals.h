@@ -36,11 +36,6 @@ typedef LONG NTSTATUS;
 typedef struct _UNICODE_STRING UNICODE_STRING;
 typedef struct _OBJECT_ATTRIBUTES OBJECT_ATTRIBUTES;
 
-#define NT_SUCCESS(status)      (((ULONG)(status) & 0x80000000) == 0x00000000)
-#define NT_INFORMATION(status)  (((ULONG)(status) & 0xC0000000) == 0x40000000)
-#define NT_WARNING(status)      (((ULONG)(status) & 0xC0000000) == 0x80000000)
-#define NT_ERROR(status)        (((ULONG)(status) & 0xC0000000) == 0xC0000000)
-
 /* `UNICODE_STRING`; ntdef.h  */
 struct _UNICODE_STRING
   {
@@ -724,7 +719,7 @@ __MCF_get_directory_for_named_objects(void)
   {
     HANDLE handle;
     NTSTATUS status = BaseGetNamedObjectDirectory(&handle);
-    __MCF_ASSERT(NT_SUCCESS(status));
+    __MCF_ASSERT(status >= 0);
     return handle;
   }
 
@@ -743,7 +738,7 @@ __MCF_create_named_section(OBJECT_ATTRIBUTES* Attributes, LONGLONG MaximumSize)
     LARGE_INTEGER size = { .QuadPart = MaximumSize };
     NTSTATUS status = NtCreateSection(&handle, SECTION_ALL_ACCESS, Attributes, &size,
                                       PAGE_READWRITE, SEC_COMMIT, NULL);
-    if(!NT_SUCCESS(status))
+    if(status < 0)
       return __MCF_win32_ntstatus_p(status, NULL);
     return handle;
   }
@@ -756,7 +751,7 @@ __MCF_duplicate_handle(HANDLE SourceHandle)
     NTSTATUS status = NtDuplicateObject(GetCurrentProcess(), SourceHandle,
                                         GetCurrentProcess(), &handle, 0, 0,
                                         DUPLICATE_SAME_ACCESS);
-    if(!NT_SUCCESS(status))
+    if(status < 0)
       return __MCF_win32_ntstatus_p(status, NULL);
     return handle;
   }
@@ -766,7 +761,7 @@ void
 __MCF_close_handle(HANDLE Handle)
   {
     NTSTATUS status = NtClose(Handle);
-    __MCF_ASSERT(NT_SUCCESS(status));
+    __MCF_ASSERT(status >= 0);
   }
 
 __MCF_ALWAYS_INLINE
@@ -778,7 +773,7 @@ __MCF_map_view_of_section(HANDLE Section, bool Inheritable)
     UINT inherit = Inheritable ? 1U : 2U;  /* ViewShare : ViewUnmap */
     NTSTATUS status = NtMapViewOfSection(Section, GetCurrentProcess(), &address, 0, 0,
                                          nullptr, &size, inherit, 0, PAGE_READWRITE);
-    if(!NT_SUCCESS(status))
+    if(status < 0)
       return __MCF_win32_ntstatus_p(status, nullptr);
     return address;
   }
@@ -788,7 +783,7 @@ void
 __MCF_unmap_view_of_section(void* Address)
   {
     NTSTATUS status = NtUnmapViewOfSection(GetCurrentProcess(), Address);
-    __MCF_ASSERT(NT_SUCCESS(status));
+    __MCF_ASSERT(status >= 0);
   }
 
 __MCF_ALWAYS_INLINE
@@ -796,7 +791,7 @@ int
 __MCF_wait_for_single_object(HANDLE Handle, const __MCF_winnt_timeout* Timeout)
   {
     NTSTATUS status = NtWaitForSingleObject(Handle, false, (LARGE_INTEGER*) &(Timeout->li));
-    __MCF_ASSERT(NT_SUCCESS(status));
+    __MCF_ASSERT(status >= 0);
     return (status == STATUS_WAIT_0) ? 0 : -1;
   }
 
@@ -805,7 +800,7 @@ void
 __MCF_sleep(const __MCF_winnt_timeout* Timeout)
   {
     NTSTATUS status = NtDelayExecution(false, (LARGE_INTEGER*) &(Timeout->li));
-    __MCF_ASSERT(NT_SUCCESS(status));
+    __MCF_ASSERT(status >= 0);
   }
 
 __MCF_ALWAYS_INLINE
@@ -814,7 +809,7 @@ __MCF_keyed_event_wait(const void* Key, const __MCF_winnt_timeout* Timeout)
   {
     NTSTATUS status = NtWaitForKeyedEvent(NULL, (PVOID) Key, false,
                                           (LARGE_INTEGER*) &(Timeout->li));
-    __MCF_ASSERT(NT_SUCCESS(status));
+    __MCF_ASSERT(status >= 0);
     return (status == STATUS_WAIT_0) ? 0 : -1;
   }
 
@@ -824,7 +819,7 @@ __MCF_keyed_event_signal(const void* Key, const __MCF_winnt_timeout* Timeout)
   {
     NTSTATUS status = NtReleaseKeyedEvent(NULL, (PVOID) Key, false,
                                           (LARGE_INTEGER*) &(Timeout->li));
-    __MCF_ASSERT(NT_SUCCESS(status));
+    __MCF_ASSERT(status >= 0);
     return (status == STATUS_WAIT_0) ? 0 : -1;
   }
 
@@ -837,7 +832,7 @@ __MCF_show_service_notification(const UNICODE_STRING* caption, const UNICODE_STR
     NTSTATUS status = NtRaiseHardError(STATUS_SERVICE_NOTIFICATION,
                                        ARRAYSIZE(params), 0x03, params,
                                        1 /* OptionOk */, &response);
-    if(!NT_SUCCESS(status))
+    if(status < 0)
       return -1;
     return (int) response;
   }
