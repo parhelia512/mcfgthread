@@ -12,7 +12,6 @@
 #include "../event.h"
 #include "xglobals.h"
 
-typedef enum thread_init_status thread_init_status;
 typedef struct thread_init thread_init;
 
 enum thread_init_status
