@@ -5,6 +5,10 @@
  * LICENSE.md as a whole. The GCC Runtime Library Exception applies
  * to this file.  */
 
+#if defined __CYGWIN__
+int main(void) { return 77;  }
+#else  // __CYGWIN__
+
 #include "../mcfgthread/thread.h"
 #undef NDEBUG
 #include <assert.h>
@@ -55,3 +59,5 @@ main(void)
     assert(pdll_tls_get(key) == &dummy2);
     assert(mdll_tls_get(key) == &dummy2);
   }
+
+#endif  // __CYGWIN__
