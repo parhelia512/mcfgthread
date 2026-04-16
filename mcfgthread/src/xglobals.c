@@ -347,7 +347,8 @@ __MCF_gthread_initialize_globals(void)
     static UNICODE_STRING gname = __MCF_NT_STRING_INIT(gnbuffer);
     static OBJECT_ATTRIBUTES gattrs = { .Length = sizeof(gattrs), .ObjectName = &gname,
                                         .Attributes = 0x00A0 /* OBJ_OPENIF | OBJ_EXCLUSIVE */ };
-    gattrs.RootDirectory = __MCF_get_directory_for_named_objects();
+
+    __MCF_set_directory_to_BaseNamedObject(&gattrs);
 
     const uint32_t pid = (uint32_t) __MCF_pid();
     __MCF_ASSERT(gnbuffer[25] == L'*');

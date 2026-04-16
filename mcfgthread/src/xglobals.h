@@ -568,13 +568,11 @@ __MCF_mfree_nonnull(void* ptr)
   }
 
 __MCF_ALWAYS_INLINE
-HANDLE
-__MCF_get_directory_for_named_objects(void)
+void
+__MCF_set_directory_to_BaseNamedObject(OBJECT_ATTRIBUTES* attrs)
   {
-    HANDLE handle;
-    NTSTATUS status = BaseGetNamedObjectDirectory(&handle);
+    NTSTATUS status = BaseGetNamedObjectDirectory(&(attrs->RootDirectory));
     __MCF_ASSERT(status >= 0);
-    return handle;
   }
 
 __MCF_ALWAYS_INLINE
