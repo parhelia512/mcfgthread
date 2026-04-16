@@ -261,7 +261,7 @@ lib_mcfgthread_minimal_dll = shared_library('mcfgthread-minimal',
       link_args: lib_mcfgthread_dll_link_args,
       sources: [ mcfgthread_src_min, mcfgthread_version_o ],
       dependencies: [ dep_kernel32, dep_ntdll ],
-      kwargs: exe_additional_kwargs,
+      kwargs: dll_additional_kwargs,
       soversion: ver.get('abi_major'),
       version: '.'.join(ver.get('abi_major'), ver.get('abi_minor'), '0'),
       install: true)
