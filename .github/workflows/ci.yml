@@ -63,7 +63,7 @@ jobs:
         run: >-
              pacman -Sy ;
              pacman -S --needed --noconfirm
-             msys2-{w32api-headers,runtime-devel},gcc,meson
+             msys2-{w32api-headers,runtime-devel} gcc meson
 
       - name: Configure
         run: >-
