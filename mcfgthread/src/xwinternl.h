@@ -52,39 +52,40 @@ NTSYSAPI
 void
 NTAPI
 RtlMoveMemory(
-    OUT void* dst,
-    IN const void* src,
-    IN SIZE_T size);
+    OUT void* Destination,
+    IN const void* Source,
+    IN SIZE_T Length);
 
 /* ntdll.dll  */
 NTSYSAPI
 void
 NTAPI
 RtlFillMemory(
-    OUT void* dst,
-    IN SIZE_T size,
-    IN int c);
+    OUT void* Destination,
+    IN SIZE_T Length,
+    IN int Fill);
 
 /* ntdll.dll  */
 NTSYSAPI
 void
 NTAPI
 RtlZeroMemory(
-    OUT void* dst,
-    IN SIZE_T size);
+    OUT void* Destination,
+    IN SIZE_T Length);
 
 /* ntdll.dll  */
 NTSYSAPI
 ULONG
 NTAPI
 RtlNtStatusToDosError(
-    IN NTSTATUS status);
+    IN NTSTATUS Status);
 
 /* ntdll.dll since Windows XP  */
 NTSYSAPI __attribute__((__pure__))
 BOOLEAN
 NTAPI
-RtlDllShutdownInProgress(void);
+RtlDllShutdownInProgress(
+    void);
 
 /* kernel32.dll since Windows 7  */
 NTSYSAPI
