@@ -228,6 +228,20 @@ mcfgthread_version_o = import('windows').compile_resources(
       include_directories: include_directories('.'),
       args: [ '-c65001' ])
 
+kwargs_exe = { }
+kwargs_dll = { }
+kwargs_lib = { }
+
+if not cc.has_define('__CYGWIN__')
+  kwargs_dll += { 'name_prefix': 'lib' }
+endif
+
+if meson.version().version_compare('>= 1.10.0')
+  kwargs_exe += { 'build_subdir': 'bin' }
+  kwargs_dll += { 'build_subdir': 'bin' }
+  kwargs_lib += { 'build_subdir': 'lib' }
+endif
+
 if cc.get_linker_id() in [ 'link', 'lld-link' ]
   lib_mcfgthread_dll_link_args = [
         '-Wl,-opt:icf', '-Wl,-safeseh:no',
@@ -240,18 +254,6 @@ else
         '-Wl,--dynamicbase', '-Wl,--nxcompat' ]
 endif
 
-exe_additional_kwargs = { }
-dll_additional_kwargs = { }
-
-if meson.version().version_compare('>= 1.10.0')
-  exe_additional_kwargs += { 'build_subdir': 'bin' }
-  dll_additional_kwargs += { 'build_subdir': 'lib' }
-endif
-
-if not cc.has_define('__CYGWIN__')
-  dll_additional_kwargs += { 'name_prefix': 'lib' }
-endif
-
 lib_mcfgthread_minimal_dll = shared_library('mcfgthread-minimal',
       c_pch: 'mcfgthread/src/xprecompiled.h',
       c_args: [ '-ffreestanding', '-D__MCF_IN_DLL' ],
@@ -261,7 +263,7 @@ lib_mcfgthread_minimal_dll = shared_library('mcfgthread-minimal',
       link_args: lib_mcfgthread_dll_link_args,
       sources: [ mcfgthread_src_min, mcfgthread_version_o ],
       dependencies: [ dep_kernel32, dep_ntdll ],
-      kwargs: dll_additional_kwargs,
+      kwargs: kwargs_dll,
       soversion: ver.get('abi_major'),
       version: '.'.join(ver.get('abi_major'), ver.get('abi_minor'), '0'),
       install: true)
@@ -276,7 +278,7 @@ lib_mcfgthread_dll = shared_library('mcfgthread',
       objects: lib_mcfgthread_minimal_dll.extract_objects(mcfgthread_src_min),
       sources: [ mcfgthread_src_ex, mcfgthread_version_o ],
       dependencies: [ dep_kernel32, dep_ntdll ],
-      kwargs: dll_additional_kwargs,
+      kwargs: kwargs_dll,
       soversion: ver.get('abi_major'),
       version: '.'.join(ver.get('abi_major'), ver.get('abi_minor'), '0'),
       install: true)
@@ -291,7 +293,7 @@ else
         implicit_include_directories: false,
         include_directories: include_directories('.'),
         sources: [ mcfgthread_src_min, mcfgthread_src_ex ],
-        kwargs: dll_additional_kwargs,
+        kwargs: kwargs_lib,
         install: true)
 endif
 
@@ -375,7 +377,7 @@ foreach src : test_src
                         sources: [ src ],
                         dependencies: [ dep_ntdll ],
                         link_with: test_link_with,
-                        kwargs: exe_additional_kwargs,
+                        kwargs: kwargs_exe,
                         build_by_default: false,
                         install: false)
 
