@@ -18,9 +18,12 @@ int
 main(void)
   {
     // load dlls
-    HMODULE pdll = LoadLibraryW(L"libmcfgthread-2.dll");
+    wchar_t dll_name[128];
+    wsprintfW(dll_name, L".\\libmcfgthread-%d.dll", _MCF_ABI_VERSION_MAJOR);
+    HMODULE pdll = LoadLibraryW(dll_name);
     assert(pdll);
-    HMODULE mdll = LoadLibraryW(L"libmcfgthread-minimal-2.dll");
+    wsprintfW(dll_name, L".\\libmcfgthread-minimal-%d.dll", _MCF_ABI_VERSION_MAJOR);
+    HMODULE mdll = LoadLibraryW(dll_name);
     assert(mdll);
 
     // load functions from dll
