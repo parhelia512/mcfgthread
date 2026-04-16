@@ -240,12 +240,16 @@ else
         '-Wl,--dynamicbase', '-Wl,--nxcompat' ]
 endif
 
-if meson.version().version_compare('< 1.10.0')
-  build_subdir_bin = { }
-  build_subdir_lib = { }
-else
-  build_subdir_bin = { 'build_subdir': 'bin' }
-  build_subdir_lib = { 'build_subdir': 'lib' }
+exe_additional_kwargs = { }
+dll_additional_kwargs = { }
+
+if meson.version().version_compare('>= 1.10.0')
+  exe_additional_kwargs += { 'build_subdir': 'bin' }
+  dll_additional_kwargs += { 'build_subdir': 'lib' }
+endif
+
+if not cc.has_define('__CYGWIN__')
+  dll_additional_kwargs += { 'name_prefix': 'lib' }
 endif
 
 lib_mcfgthread_minimal_dll = shared_library('mcfgthread-minimal',
@@ -257,7 +261,7 @@ lib_mcfgthread_minimal_dll = shared_library('mcfgthread-minimal',
       link_args: lib_mcfgthread_dll_link_args,
       sources: [ mcfgthread_src_min, mcfgthread_version_o ],
       dependencies: [ dep_kernel32, dep_ntdll ],
-      kwargs: build_subdir_bin,
+      kwargs: exe_additional_kwargs,
       soversion: ver.get('abi_major'),
       version: '.'.join(ver.get('abi_major'), ver.get('abi_minor'), '0'),
       install: true)
@@ -272,7 +276,7 @@ lib_mcfgthread_dll = shared_library('mcfgthread',
       objects: lib_mcfgthread_minimal_dll.extract_objects(mcfgthread_src_min),
       sources: [ mcfgthread_src_ex, mcfgthread_version_o ],
       dependencies: [ dep_kernel32, dep_ntdll ],
-      kwargs: build_subdir_bin,
+      kwargs: dll_additional_kwargs,
       soversion: ver.get('abi_major'),
       version: '.'.join(ver.get('abi_major'), ver.get('abi_minor'), '0'),
       install: true)
@@ -287,7 +291,7 @@ else
         implicit_include_directories: false,
         include_directories: include_directories('.'),
         sources: [ mcfgthread_src_min, mcfgthread_src_ex ],
-        kwargs: build_subdir_lib,
+        kwargs: dll_additional_kwargs,
         install: true)
 endif
 
@@ -371,7 +375,7 @@ foreach src : test_src
                         sources: [ src ],
                         dependencies: [ dep_ntdll ],
                         link_with: test_link_with,
-                        kwargs: build_subdir_bin,
+                        kwargs: exe_additional_kwargs,
                         build_by_default: false,
                         install: false)
 
