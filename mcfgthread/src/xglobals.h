@@ -10,13 +10,12 @@
 #include "../mutex.h"
 #include "../cond.h"
 #include "../dtor_queue.h"
-#include <minwindef.h>
-#include <winnt.h>
-#include <ntstatus.h>
-#include <winerror.h>
+#include "xwinternl.h"
 #include <sysinfoapi.h>
 #include <libloaderapi.h>
 #include <heapapi.h>
+#include <ntstatus.h>
+#include <winerror.h>
 
 #if __BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__
 #  error Windows platforms are assumed to be little-endian.
@@ -30,151 +29,6 @@
 #if 0 __MCF_C23(+1) __MCF_CXX11(+1) == 0
 #  define nullptr   ((void*) __MCF_IPTR_0)
 #endif
-
-/* `NTSTATUS`; ntdef.h  */
-typedef LONG NTSTATUS;
-typedef struct _UNICODE_STRING UNICODE_STRING;
-typedef struct _OBJECT_ATTRIBUTES OBJECT_ATTRIBUTES;
-
-/* `UNICODE_STRING`; ntdef.h  */
-struct _UNICODE_STRING
-  {
-    USHORT Length;
-    USHORT MaximumLength;
-    PWSTR Buffer;
-  };
-
-/* `OBJECT_ATTRIBUTES`; ntdef.h  */
-struct _OBJECT_ATTRIBUTES
-  {
-    ULONG Length;
-    HANDLE RootDirectory;
-    UNICODE_STRING* ObjectName;
-    ULONG Attributes;
-    PVOID SecurityDescriptor;
-    PVOID SecurityQualityOfService;
-  };
-
-/* Hard-code these.  */
-#undef GetCurrentProcess
-#define GetCurrentProcess()  ((HANDLE) -1)
-
-#undef GetCurrentThread
-#define GetCurrentThread()   ((HANDLE) -2)
-
-/* Undefine macros that redirect to standard C functions, so the ones from
- * system DLLs will be called.  */
-#undef RtlCopyMemory
-#undef RtlMoveMemory
-#undef RtlFillMemory
-#undef RtlZeroMemory
-#undef RtlEqualMemory
-
-/* Declare native APIs that we would like to use.  */
-NTSYSAPI void NTAPI RtlMoveMemory(void* dst, const void* src, SIZE_T size);
-NTSYSAPI void NTAPI RtlFillMemory(void* dst, SIZE_T size, int c);
-NTSYSAPI void NTAPI RtlZeroMemory(void* dst, SIZE_T size);
-
-NTSYSAPI ULONG NTAPI RtlNtStatusToDosError(NTSTATUS status);
-NTSYSAPI __MCF_FN_CONST ULONG NTAPI RtlNtStatusToDosErrorNoTeb(NTSTATUS status);
-NTSYSAPI __MCF_FN_PURE BOOLEAN NTAPI RtlDllShutdownInProgress(void);
-NTSYSAPI NTSTATUS NTAPI BaseGetNamedObjectDirectory(HANDLE* OutHandle);
-
-NTSYSCALLAPI
-NTSTATUS
-NTAPI
-NtCreateSection(
-    OUT HANDLE* SectionHandle,
-    IN ACCESS_MASK DesiredAccess,
-    IN OPTIONAL OBJECT_ATTRIBUTES* ObjectAttributes,
-    IN LARGE_INTEGER* MaximumSize,
-    IN ULONG SectionPageProtection,
-    IN ULONG AllocationAttributes,
-    IN OPTIONAL HANDLE FileHandle);
-
-NTSYSCALLAPI
-NTSTATUS
-NTAPI
-NtDuplicateObject(
-    IN HANDLE SourceProcessHandle,
-    IN HANDLE SourceHandle,
-    IN OPTIONAL HANDLE TargetProcessHandle,
-    OUT OPTIONAL HANDLE* TargetHandle,
-    IN ACCESS_MASK DesiredAccess,
-    IN ULONG HandleAttributes,
-    IN ULONG Options);
-
-NTSYSCALLAPI
-NTSTATUS
-NTAPI
-NtClose(
-    IN HANDLE Handle);
-
-NTSYSCALLAPI
-NTSTATUS
-NTAPI
-NtMapViewOfSection(
-    IN HANDLE SectionHandle,
-    IN HANDLE ProcessHandle,
-    IN OUT PVOID* BaseAddress,
-    IN ULONG_PTR ZeroBits,
-    IN SIZE_T CommitSize,
-    IN OUT OPTIONAL LARGE_INTEGER* SectionOffset,
-    IN OUT SIZE_T* ViewSize,
-    IN UINT InheritDisposition,
-    IN ULONG AllocationType,
-    IN ULONG Win32Protect);
-
-NTSYSCALLAPI
-NTSTATUS
-NTAPI
-NtUnmapViewOfSection(
-    IN HANDLE ProcessHandle,
-    IN OPTIONAL PVOID BaseAddress);
-
-NTSYSCALLAPI
-NTSTATUS
-NTAPI
-NtWaitForSingleObject(
-    IN HANDLE Handle,
-    IN BOOLEAN Alertable,
-    IN OPTIONAL LARGE_INTEGER* Timeout);
-
-NTSYSCALLAPI
-NTSTATUS
-NTAPI
-NtDelayExecution(
-    IN BOOLEAN Alertable,
-    IN OPTIONAL LARGE_INTEGER* Timeout);
-
-NTSYSCALLAPI
-NTSTATUS
-NTAPI
-NtWaitForKeyedEvent(
-    IN OPTIONAL HANDLE KeyedEventHandle,
-    IN PVOID Key,
-    IN BOOLEAN Alertable,
-    IN OPTIONAL LARGE_INTEGER* Timeout);
-
-NTSYSCALLAPI
-NTSTATUS
-NTAPI
-NtReleaseKeyedEvent(
-    IN OPTIONAL HANDLE KeyedEventHandle,
-    IN PVOID Key,
-    IN BOOLEAN Alertable,
-    IN OPTIONAL LARGE_INTEGER* Timeout);
-
-NTSYSCALLAPI
-NTSTATUS
-NTAPI
-NtRaiseHardError(
-    IN NTSTATUS Status,
-    IN ULONG NumberOfParameters,
-    IN ULONG UnicodeStringParameterMask,
-    IN OPTIONAL ULONG_PTR* Parameters,
-    IN ULONG ResponseOption,
-    OUT ULONG* Response);
 
 /* Define a value that resembles `MM_SHARED_USER_DATA_VA` in Windows SDK for
  * assembly, which has the same value on all architectures. This points to a
