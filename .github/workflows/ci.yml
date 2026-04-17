@@ -19,8 +19,12 @@ on:
       - master
 
 jobs:
+  #==========================================================================
+  # Primary builds
+  #==========================================================================
+
   ubuntu-x86-64:
-    name: Ubuntu cross build (x86-64 GCC; Wine)
+    name: Ubuntu cross (GCC, mingw-w64 runtime, MSVCRT, x86-64)
     runs-on: ubuntu-24.04
 
     steps:
@@ -47,7 +51,7 @@ jobs:
         run: meson test -t15 -Cbuild_ci --print-errorlogs
 
   msys2-ucrt64:
-    name: MSYS2 native build (x86-64 GCC)
+    name: MSYS2 native (GCC, mingw-w64 runtime, UCRT, x86-64)
     runs-on: windows-2022
 
     defaults:
@@ -76,7 +80,7 @@ jobs:
         run: meson test -t2 -Cbuild_ci --print-errorlogs
 
   msys2-mingw32:
-    name: MSYS2 native build (x86-32 GCC)
+    name: MSYS2 native (GCC, mingw-w64 runtime, MSVCRT, x86-32)
     runs-on: windows-2022
 
     defaults:
@@ -104,8 +108,12 @@ jobs:
       - name: Run tests
         run: meson test -t2 -Cbuild_ci --print-errorlogs
 
+  #==========================================================================
+  # Secondary builds
+  #==========================================================================
+
   msys2-clang64:
-    name: MSYS2 native build (x86-64 Clang)
+    name: MSYS2 native (Clang, mingw-w64 runtime, UCRT, x86-64)
     runs-on: windows-2022
 
     defaults:
@@ -133,8 +141,8 @@ jobs:
       - name: Run tests
         run: meson test -t2 -Cbuild_ci --print-errorlogs
 
-  msys2-arm64:
-    name: MSYS2 native build (ARM64 Clang)
+  msys2-clangarm64:
+    name: MSYS2 native (Clang, mingw-w64 runtime, UCRT, ARM64)
     runs-on: windows-11-arm
 
     defaults:
@@ -163,7 +171,7 @@ jobs:
         run: meson test -t2 -Cbuild_ci --print-errorlogs
 
   llvm-mingw-arm64:
-    name: LLVM MinGW cross build (ARM64 Clang; Wine)
+    name: LLVM-MinGW cross (Clang, mingw-w64 runtime, UCRT, ARM64)
     runs-on: ubuntu-22.04-arm
 
     steps:
@@ -195,7 +203,7 @@ jobs:
         run: meson test -t20 -Cbuild_ci --print-errorlogs
 
   llvm-mingw-arm64ec:
-    name: LLVM MinGW native build (ARM64EC Clang)
+    name: LLVM-MinGW native (Clang, mingw-w64 runtime, UCRT, ARM64EC)
     runs-on: windows-11-arm
 
     defaults:
@@ -245,8 +253,8 @@ jobs:
              copy build_ci/bin/*.dll build_x64/bin/ &&
              meson test -t2 -Cbuild_x64 --no-rebuild --print-errorlogs
 
-  llvm-x64:
-    name: LLVM native build (x86-64 Clang)
+  llvm-msvc-x64:
+    name: LLVM-MSVC native (Clang, MSVC runtime, UCRT, x86-64)
     runs-on: windows-2022
 
     defaults:
@@ -273,8 +281,8 @@ jobs:
       - name: Run tests
         run: meson test -t2 -Cbuild_ci --print-errorlogs
 
-  llvm-x86:
-    name: LLVM native build (x86-32 Clang)
+  llvm-msvc-x86:
+    name: LLVM-MSVC native (Clang, MSVC runtime, UCRT, x86-32)
     runs-on: windows-2022
 
     defaults:
@@ -301,8 +309,8 @@ jobs:
       - name: Run tests
         run: meson test -t2 -Cbuild_ci --print-errorlogs
 
-  llvm-arm64:
-    name: LLVM native build (ARM64 Clang)
+  llvm-msvc-arm64:
+    name: LLVM-MSVC native (Clang, MSVC runtime, UCRT, ARM64)
     runs-on: windows-11-arm
 
     defaults:
@@ -329,8 +337,8 @@ jobs:
       - name: Run tests
         run: meson test -t2 -Cbuild_ci --print-errorlogs
 
-  llvm-arm64ec:
-    name: LLVM native build (ARM64EC Clang)
+  llvm-msvc-arm64ec:
+    name: LLVM-MSVC native (Clang, MSVC runtime, UCRT, ARM64EC)
     runs-on: windows-11-arm
 
     defaults:
@@ -346,6 +354,8 @@ jobs:
         run: >-
              pip3 install --break-system-packages meson
 
+      # TODO: The preinstalled LLVM in GitHub Actions runner is too old to
+      # support ARM64EC. This has to be removed once the runner is updated.
       - name: Download LLVM
         run: >-
              curl.exe -LO "https://github.com/llvm/llvm-project/releases/download/llvmorg-22.1.0/clang+llvm-22.1.0-aarch64-pc-windows-msvc.tar.xz" &&
@@ -382,8 +392,12 @@ jobs:
              copy build_ci/bin/*.dll build_x64/bin/ &&
              meson test -t2 -Cbuild_x64 --no-rebuild --print-errorlogs
 
+  #==========================================================================
+  # Tertiary builds
+  #==========================================================================
+
   msys2-msys:
-    name: MSYS2 native build (x86-64 GCC; MSYS)
+    name: MSYS2 native (GCC, Cygwin/MSYS2 runtime, x86-64)
     runs-on: windows-2022
 
     defaults:
