@@ -189,16 +189,17 @@ install_headers(meson.current_build_dir() / 'version.h', subdir: 'mcfgthread')
 # Rules for 'lib/libmcfgthread'
 #===========================================================
 
+stdcall_suffixes_max = 256
+stdcall_suffixes = { }
+
 if cc.has_define('__i386__') or cc.has_define('_M_IX86')
-  stdcall_suffixes = { '0': '@0', '4': '@4', '8': '@8', '12': '@12', '16': '@16',
-                       '20': '@20', '24': '@24', '28': '@28', '32': '@32',
-                       '36': '@36', '40': '@40', '44': '@44', '48': '@48',
-                       '52': '@52', '56': '@56', '60': '@60', '64': '@64' }
+  foreach i : range(0, stdcall_suffixes_max + 4, 4)
+    stdcall_suffixes += { i.to_string(): '@' + i.to_string() }
+  endforeach
 else
-  stdcall_suffixes = { '0': '', '4': '', '8': '', '12': '', '16': '',
-                       '20': '', '24': '', '28': '', '32': '',
-                       '36': '', '40': '', '44': '', '48': '',
-                       '52': '', '56': '', '60': '', '64': '' }
+  foreach i : range(0, stdcall_suffixes_max + 4, 4)
+    stdcall_suffixes += { i.to_string(): '' }
+  endforeach
 endif
 
 dep_kernel32 = declare_dependency(
