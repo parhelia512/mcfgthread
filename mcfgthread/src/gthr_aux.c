@@ -11,68 +11,6 @@
 #include "../gthr_aux.h"
 #include "xglobals.h"
 
-static
-EXCEPTION_DISPOSITION
-do_call_once_seh_unwind(EXCEPTION_RECORD* rec, PVOID estab_frame, CONTEXT* ctx, PVOID disp_ctx);
-
-__MCF_DLLEXPORT
-void
-__MCF_gthr_call_once_seh_take_over(_MCF_once* once, __MCF_cxa_dtor_any_ init_proc, void* arg)
-  {
-#ifdef __MCF_M_X8632
-    __MCF_USING_SEH_HANDLER(do_call_once_seh_unwind, (DWORD) once);
-    _MCF_once* saved_once = once;
-#  define do_seh_once_reg(frm, disp)  (((DWORD**) (frm))[2])
-#else
-    __MCF_USING_SEH_HANDLER(do_call_once_seh_unwind);
-#  if defined __MCF_M_X8664_ASM
-    register _MCF_once* saved_once __asm__("rsi") = once;
-#  elif defined __MCF_M_ARM64_ASM
-    register _MCF_once* saved_once __asm__("x25") = once;
-#  endif
-    __asm__ volatile ("" : "+r"(saved_once));
-#  if defined __MCF_M_X8664
-#    define do_seh_once_reg(frm, disp)  (((DISPATCHER_CONTEXT*) (disp))->ContextRecord->Rsi)
-#  elif defined __MCF_M_ARM64
-#    define do_seh_once_reg(frm, disp)  (((DISPATCHER_CONTEXT*) (disp))->ContextRecord->X25)
-#  endif
-#endif
-
-    /* Do initialization. This is the normal path.  */
-    __MCF_invoke_cxa_dtor(init_proc, arg);
-
-    /* Disarm the once flag with a tail call.  */
-    _MCF_once_release(saved_once);
-  }
-
-static
-EXCEPTION_DISPOSITION
-do_call_once_seh_unwind(EXCEPTION_RECORD* rec, PVOID estab_frame, CONTEXT* ctx, PVOID disp_ctx)
-  {
-    (void) estab_frame;
-    (void) ctx;
-    (void) disp_ctx;
-
-    /* If the stack is being unwound, reset the once flag.  */
-    if(rec->ExceptionFlags & EXCEPTION_UNWINDING)
-      _MCF_once_abort((_MCF_once*) do_seh_once_reg(estab_frame, disp_ctx));
-
-    /* Continue unwinding.  */
-    return ExceptionContinueSearch;
-  }
-
-#ifdef __MCF_M_X8632
-/* Register the unwind handler. In the DLL we build a handler table by hand
- * which works on all compilers. In the static library we use the `.safeseh`
- * directive but it is only supported by Microsoft LINK, or LLD in LINK mode.  */
-#  if !defined __MCF_IN_DLL && defined _MSC_VER
-__asm__ (".safeseh _do_call_once_seh_unwind");
-#  elif defined __MCF_IN_DLL
-__asm__ (".globl ___MCF_gthr_do_call_once_seh_unwind\n"
-         ".equiv ___MCF_gthr_do_call_once_seh_unwind, _do_call_once_seh_unwind");
-#  endif
-#endif
-
 __MCF_DLLEXPORT __MCF_FN_PURE
 int64_t
 __MCF_gthr_timeout_from_timespec(const __MCF_timespec* abs_time)

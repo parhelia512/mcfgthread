@@ -50,11 +50,6 @@ void
 __MCF_gthr_call_once_seh(_MCF_once* __once, __MCF_cxa_dtor_any_ __init_proc, void* __arg)
   __MCF_MAY_THROW;
 
-__MCF_GTHR_AUX_IMPORT
-void
-__MCF_gthr_call_once_seh_take_over(_MCF_once* __once, __MCF_cxa_dtor_any_ __init_proc, void* __arg)
-  __MCF_MAY_THROW;
-
 /* This is an auxiliary function for converting a `__MCF_timespec` to the
  * number of milliseconds since the Unix epoch, with boundary checking.  */
 __MCF_GTHR_AUX_IMPORT __MCF_FN_PURE

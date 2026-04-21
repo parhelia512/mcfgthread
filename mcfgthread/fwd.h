@@ -385,6 +385,14 @@ uintptr_t
 _MCF_get_active_processor_mask(void)
   __MCF_noexcept;
 
+/* Calls `__init_proc(__arg)` exactly once. If an exception is thrown, this
+ * function calls `_MCF_once_abort(__once)` and rethrow the exception; otherwise
+ * this function calls `_MCF_once_release(__once)` and returns.  */
+__MCF_XGLOBALS_IMPORT
+void
+__MCF_gthr_call_once_seh_take_over(_MCF_once* __once, __MCF_cxa_dtor_any_ __init_proc, void* __arg)
+  __MCF_MAY_THROW;
+
 /* Declare some helper functions.  */
 __MCF_ALWAYS_INLINE __MCF_CXX11(constexpr)
 size_t
