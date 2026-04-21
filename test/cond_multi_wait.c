@@ -25,14 +25,14 @@ thread_proc(_MCF_thread* self)
 
     const int64_t start_time = _MCF_tick_count();
     while(_MCF_tick_count() < start_time + 3000) {
-      _MCF_cond_wait(&cond, NULL, NULL, 0, (const int64_t[]){ 0 });
+      _MCF_cond_wait(&cond, NULL, NULL, 0, &(int64_t){ 0 });
 
       // Check whether a deadlock has occurred.
       //   https://github.com/lhmouse/mcfgthread/issues/86
       int32_t c1 = _MCF_atomic_load_32_rlx(&signal_count);
       if(c1 & 1) {
         // Main thread is waiting.
-        _MCF_sleep((const int64_t[]){ -10 });
+        _MCF_sleep(&(int64_t){ -10 });
         int32_t c2 = _MCF_atomic_load_32_rlx(&signal_count);
         assert(c1 != c2);
       }

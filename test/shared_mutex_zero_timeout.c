@@ -25,20 +25,20 @@ thread_proc(_MCF_thread* self)
     _MCF_sem_wait(&start, NULL);
 
     for(;;) {
-      int r = _MCF_shared_mutex_lock_exclusive(&mutex, (const int64_t[]){ 0 });
+      int r = _MCF_shared_mutex_lock_exclusive(&mutex, &(int64_t){ 0 });
       if(r == 0) {
         fprintf(stderr, "thread %d got %d\n", self->__tid, r);
 
         /* Add a resource.  */
         int old = resource;
-        _MCF_sleep((const int64_t[]){ -10 });
+        _MCF_sleep(&(int64_t){ -10 });
         resource = old + 1;
         _MCF_shared_mutex_unlock(&mutex);
         break;
       }
       else if(r == -1) {
         /* Wait.  */
-        _MCF_sleep((const int64_t[]){ -10 });
+        _MCF_sleep(&(int64_t){ -10 });
         continue;
       }
       else

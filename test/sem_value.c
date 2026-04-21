@@ -18,24 +18,24 @@ main(void)
   {
     assert(_MCF_sem_get(&sem) == 3);
 
-    assert(_MCF_sem_wait(&sem, (const int64_t[]){0}) == 0);
+    assert(_MCF_sem_wait(&sem, &(int64_t){0}) == 0);
     assert(_MCF_sem_get(&sem) == 2);
 
-    assert(_MCF_sem_wait(&sem, (const int64_t[]){0}) == 0);
+    assert(_MCF_sem_wait(&sem, &(int64_t){0}) == 0);
     assert(_MCF_sem_get(&sem) == 1);
 
-    assert(_MCF_sem_wait(&sem, (const int64_t[]){0}) == 0);
+    assert(_MCF_sem_wait(&sem, &(int64_t){0}) == 0);
     assert(_MCF_sem_get(&sem) == 0);
 
-    assert(_MCF_sem_wait(&sem, (const int64_t[]){0}) == -1);
+    assert(_MCF_sem_wait(&sem, &(int64_t){0}) == -1);
     assert(_MCF_sem_get(&sem) == 0);
 
     assert(_MCF_sem_signal_some(&sem, 2) == 0);
     assert(_MCF_sem_get(&sem) == 2);
 
-    assert(_MCF_sem_wait(&sem, (const int64_t[]){0}) == 0);
+    assert(_MCF_sem_wait(&sem, &(int64_t){0}) == 0);
     assert(_MCF_sem_get(&sem) == 1);
 
-    assert(_MCF_sem_wait(&sem, (const int64_t[]){0}) == 0);
+    assert(_MCF_sem_wait(&sem, &(int64_t){0}) == 0);
     assert(_MCF_sem_get(&sem) == 0);
   }

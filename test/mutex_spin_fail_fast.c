@@ -20,19 +20,19 @@ main(void)
     assert(mutex.__sp_mask == 0);
     assert(mutex.__sp_nfail == 0);
 
-    assert(_MCF_mutex_lock(&mutex, (const int64_t[]){ -100 }) == 0);
+    assert(_MCF_mutex_lock(&mutex, &(int64_t){ -100 }) == 0);
     assert(mutex.__locked == 1);
     assert(mutex.__sp_nfail == 0);
 
     for(int count = 1;  count <= 15;  ++count) {
       fprintf(stderr, "try failing: %d\n", count);
-      assert(_MCF_mutex_lock(&mutex, (const int64_t[]){ -100 }) == -1);
+      assert(_MCF_mutex_lock(&mutex, &(int64_t){ -100 }) == -1);
       assert(mutex.__locked == 1);
       assert(mutex.__sp_nfail == count);
     }
 
     fprintf(stderr, "try failing: final\n");
-    assert(_MCF_mutex_lock(&mutex, (const int64_t[]){ -100 }) == -1);
+    assert(_MCF_mutex_lock(&mutex, &(int64_t){ -100 }) == -1);
     assert(mutex.__locked == 1);
     assert(mutex.__sp_nfail == 15);
 
@@ -40,13 +40,13 @@ main(void)
       fprintf(stderr, "try succeeding: %d\n", count);
       _MCF_mutex_unlock(&mutex);
       assert(mutex.__locked == 0);
-      assert(_MCF_mutex_lock(&mutex, (const int64_t[]){ -100 }) == 0);
+      assert(_MCF_mutex_lock(&mutex, &(int64_t){ -100 }) == 0);
       assert(mutex.__sp_nfail == count - 1);
     }
 
     fprintf(stderr, "try succeeding: final\n");
     _MCF_mutex_unlock(&mutex);
     assert(mutex.__locked == 0);
-    assert(_MCF_mutex_lock(&mutex, (const int64_t[]){ -100 }) == 0);
+    assert(_MCF_mutex_lock(&mutex, &(int64_t){ -100 }) == 0);
     assert(mutex.__sp_nfail == 0);
   }

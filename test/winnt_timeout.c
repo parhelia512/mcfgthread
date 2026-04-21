@@ -23,11 +23,11 @@ main(void)
     _MCF_thread_set_priority(NULL, _MCF_thread_priority_above_normal);
     now = _MCF_perf_counter();
 
-    __MCF_initialize_winnt_timeout_v3(&to, (const int64_t[]){ -1116 });  /* relative  */
+    __MCF_initialize_winnt_timeout_v3(&to, &(int64_t){ -1116 });  /* relative  */
     while(to.li.QuadPart < 0) {
       // repeat
       fprintf(stderr, "  sleep -> %lld\n", to.li.QuadPart);
-      _MCF_sleep_noninterruptible((const int64_t[]){ -37 });
+      _MCF_sleep_noninterruptible(&(int64_t){ -37 });
       __MCF_adjust_winnt_timeout_v3(&to);
     }
 

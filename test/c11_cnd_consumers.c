@@ -76,7 +76,7 @@ main(void)
       assert(threads[k]);
     }
 
-    _MCF_sleep((const int64_t[]){ -500 });
+    _MCF_sleep(&(int64_t){ -500 });
 
     err = mtx_lock(&mutex);
     assert(err == thrd_success);
