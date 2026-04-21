@@ -37,11 +37,11 @@ mcfgthread_src_min = [
   'mcfgthread/src/shared_mutex.c', 'mcfgthread/src/cond.c', 'mcfgthread/src/once.c',
   'mcfgthread/src/sem.c', 'mcfgthread/src/event.c', 'mcfgthread/src/thread.c',
   'mcfgthread/src/cxa.c', 'mcfgthread/src/dtor_queue.c', 'mcfgthread/src/exit.c',
-  'mcfgthread/src/tls.c', 'mcfgthread/src/gthr_aux.c' ]
+  'mcfgthread/src/tls.c' ]
 
 mcfgthread_src_ex = [
-  'mcfgthread/src/gthr.c', 'mcfgthread/src/gthr_libobjc.c', 'mcfgthread/src/c11.c',
-  'mcfgthread/src/libcxx.c' ]
+  'mcfgthread/src/gthr_aux.c', 'mcfgthread/src/gthr.c', 'mcfgthread/src/gthr_libobjc.c',
+  'mcfgthread/src/c11.c', 'mcfgthread/src/libcxx.c' ]
 
 test_src = [
   'test/optional_imports.c', 'test/self_oom.c', 'test/mix.c', 'test/memory.c',
