@@ -144,11 +144,13 @@ __MCF_CXX(extern "C" {)
 #    define __MCF_64_32(x, y)  x
 #    define __MCF_USYM  ""
 #    define __MCF_M_X8664_ASM  1
+#    define __MCF_M_X86_ASM  1
 #    define __MCF_M_X8664  1
 #  elif defined __i386__
 #    define __MCF_64_32(x, y)  y
 #    define __MCF_USYM  "_"
 #    define __MCF_M_X8632_ASM  1
+#    define __MCF_M_X86_ASM  1
 #    define __MCF_M_X8632  1
 #  elif defined __aarch64__ || defined __arm64ec__
 #    define __MCF_64_32(x, y)  x

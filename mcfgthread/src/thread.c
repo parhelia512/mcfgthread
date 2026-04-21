@@ -51,7 +51,7 @@ do_win32_thread_routine(LPVOID param)
     _MCF_event_set_slow(init->status, thread_init_running);
     init = __MCF_BAD_PTR;
 
-#if defined __MCF_M_X8632_ASM || defined __MCF_M_X8664_ASM
+#if defined __MCF_M_X86_ASM
     /* Set x87 precision to 64-bit mantissa (GNU `long double` format).  */
     __asm__ volatile ("fninit");
 #endif
