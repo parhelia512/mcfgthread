@@ -63,7 +63,8 @@
 typedef void __stdcall typeof_GetSystemTimePreciseAsFileTime(FILETIME*);
 typedef LPVOID __stdcall typeof_TlsGetValue2(ULONG);
 
-/* Declare helper functions here.  */
+/* Terminates the current process. This function is used as the exception
+ * handler of a `noexcept` function.  */
 __MCF_XGLOBALS_IMPORT
 EXCEPTION_DISPOSITION
 __MCF_seh_top(EXCEPTION_RECORD* rec, PVOID estab_frame, CONTEXT* ctx, PVOID disp_ctx);
