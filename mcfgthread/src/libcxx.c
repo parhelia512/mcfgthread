@@ -15,13 +15,9 @@ __MCF_DLLEXPORT
 void
 __MCF_libcxx_thread_sleep_for_ns_count(int64_t ns)
   {
-    double value = 0.9999999;
-    value += (double) ns * 0.000001;
-
-    /* Clamp the timeout.  */
-    value = __builtin_fmax(value, 0);
-    value = __builtin_fmin(value, 0x1p63 - 0x1p10);
-
-    int64_t timeout = (int64_t) -value;
-    _MCF_sleep_noninterruptible(&timeout);
+    double ms = 0.9999999;
+    ms += (double) ns * 0.000001;
+    ms = __builtin_fmax(ms, 0);
+    ms = __builtin_fmin(ms, 0x1p63 - 0x1p10);
+    _MCF_sleep_noninterruptible(&(int64_t){ (int64_t) -ms });
   }
