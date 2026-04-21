@@ -42,9 +42,9 @@
 
 /* Initialize a GUID in the canonical form.  */
 #define __MCF_GUID(a8,b4,c4,d4,e12)  \
-    ((GUID) { 0x##a8, 0x##b4, 0x##c4, { 0x##d4 >> 8, 0x##d4 & 0xFF, 0x##e12 >> 40,  \
-              (0x##e12 >> 32) & 0xFF, (0x##e12 >> 24) & 0xFF, (0x##e12 >> 16) & 0xFF,  \
-              (0x##e12 >> 8) & 0xFF, 0x##e12 & 0xFF } })
+    ((GUID){ 0x##a8, 0x##b4, 0x##c4, { 0x##d4 >> 8, 0x##d4 & 0xFF, 0x##e12 >> 40,  \
+             (0x##e12 >> 32) & 0xFF, (0x##e12 >> 24) & 0xFF, (0x##e12 >> 16) & 0xFF,  \
+             (0x##e12 >> 8) & 0xFF, 0x##e12 & 0xFF } })
 
 /* Define a non-zero but invalid value. This can be used to mark a pointer
  * to freed memory, or to prevent a static pointer from being placed into
@@ -76,8 +76,8 @@ __MCF_seh_top(EXCEPTION_RECORD* rec, PVOID estab_frame, CONTEXT* ctx, PVOID disp
     EXCEPTION_REGISTRATION_RECORD* const __MCF_i386_seh_record  \
            __attribute__((__cleanup__(__MCF_i386_seh_cleanup)))  \
       = __MCF_i386_seh_install(  \
-          (DWORD []) { (DWORD) __MCF_teb_load_ptr(0), (DWORD) (fn),  \
-                       __VA_ARGS__ })  /* no semicolon  */
+          (DWORD[]){ (DWORD) __MCF_teb_load_ptr(0), (DWORD) (fn),  \
+                     __VA_ARGS__ })  /* no semicolon  */
 
 __MCF_ALWAYS_INLINE
 EXCEPTION_REGISTRATION_RECORD*

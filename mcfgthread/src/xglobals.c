@@ -491,7 +491,7 @@ DllMainCRTStartup(PVOID instance, ULONG reason, PVOID reserved)
       {
       case DLL_PROCESS_ATTACH:
         __MCF_gthread_initialize_globals();
-        VirtualProtect((void*) &__MCF_g, sizeof(__MCF_g), PAGE_READONLY, &(DWORD) { 0 } );
+        VirtualProtect((void*) &__MCF_g, sizeof(__MCF_g), PAGE_READONLY, &(DWORD){ 0 } );
         return 1;
 
       case DLL_THREAD_DETACH:

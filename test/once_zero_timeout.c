@@ -27,27 +27,27 @@ thread_proc(_MCF_thread* self)
   {
     _MCF_once_wait(&start, NULL);
 
-    int r = _MCF_once_wait(&once, (const int64_t[]) { 0 });
+    int r = _MCF_once_wait(&once, (const int64_t[]){ 0 });
     fprintf(stderr, "thread %d got %d\n", self->__tid, r);
     if(r == 1) {
       /* Perform initialization.  */
       int old = resource;
-      _MCF_sleep((const int64_t[]) { -200 });
+      _MCF_sleep((const int64_t[]){ -200 });
       resource = old + 1;
       _MCF_once_release(&once);
 
-      _MCF_sleep((const int64_t[]) { -100 });
+      _MCF_sleep((const int64_t[]){ -100 });
       _MCF_atomic_xadd_32_rlx(&num_init, 1);
     }
     else if(r == 0) {
       /* Assume `resource` has been initialized.  */
       assert(resource == 1);
 
-      _MCF_sleep((const int64_t[]) { -100 });
+      _MCF_sleep((const int64_t[]){ -100 });
       _MCF_atomic_xadd_32_rlx(&num_ready, 1);
     }
     else if(r == -1) {
-      _MCF_sleep((const int64_t[]) { -100 });
+      _MCF_sleep((const int64_t[]){ -100 });
       _MCF_atomic_xadd_32_rlx(&num_timed_out, 1);
     }
     else
