@@ -45,7 +45,7 @@ __MCF_c11_thrd_sleep(const __MCF_timespec* dur, __MCF_timespec* rem_opt)
       time_t rem_sec = (time_t) rem;
 #endif
       rem_opt->tv_sec = (time_t) rem_sec;
-      rem_opt->tv_nsec = (long) ((rem - rem_sec) * 1000000000);
+      rem_opt->tv_nsec = (long) ((rem - (double) rem_sec) * 1000000000);
     }
 
     /* Return 0 in case of timeouts, and -1 in case of interrupts.  */
