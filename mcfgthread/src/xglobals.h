@@ -13,6 +13,7 @@
 #include "xwinternl.h"
 #include <heapapi.h>
 #include <winerror.h>
+#include <sysinfoapi.h>
 
 #if __BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__
 #  error Windows platforms are assumed to be little-endian.

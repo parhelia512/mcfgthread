@@ -12,7 +12,6 @@
 #include "xglobals.h"
 #include "../once.h"
 #include <ntstatus.h>
-#include <sysinfoapi.h>
 #include <libloaderapi.h>
 
 static inline
