@@ -578,13 +578,6 @@ __MCF_set_directory_to_BaseNamedObject(OBJECT_ATTRIBUTES* attrs)
   }
 
 __MCF_ALWAYS_INLINE
-bool
-__MCF_is_process_shutting_down(void)
-  {
-    return RtlDllShutdownInProgress();
-  }
-
-__MCF_ALWAYS_INLINE
 HANDLE
 __MCF_create_named_section(OBJECT_ATTRIBUTES* Attributes, LONGLONG MaximumSize)
   {
