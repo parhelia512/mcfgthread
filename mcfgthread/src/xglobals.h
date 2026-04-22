@@ -11,10 +11,7 @@
 #include "../cond.h"
 #include "../dtor_queue.h"
 #include "xwinternl.h"
-#include <sysinfoapi.h>
-#include <libloaderapi.h>
 #include <heapapi.h>
-#include <ntstatus.h>
 #include <winerror.h>
 
 #if __BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__
@@ -668,18 +665,4 @@ __MCF_keyed_event_signal(const void* Key, const __MCF_winnt_timeout* Timeout)
                                           (LARGE_INTEGER*) &(Timeout->li));
     __MCF_ASSERT(status >= 0);
     return (status == STATUS_WAIT_0) ? 0 : -1;
-  }
-
-__MCF_ALWAYS_INLINE
-int
-__MCF_show_service_notification(const UNICODE_STRING* caption, const UNICODE_STRING* text, ULONG options)
-  {
-    ULONG response = 0;
-    ULONG_PTR params[4] = { (ULONG_PTR) text, (ULONG_PTR) caption, options, 0 };
-    NTSTATUS status = NtRaiseHardError(STATUS_SERVICE_NOTIFICATION,
-                                       ARRAYSIZE(params), 0x03, params,
-                                       1 /* OptionOk */, &response);
-    if(status < 0)
-      return -1;
-    return (int) response;
   }

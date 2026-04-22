@@ -11,6 +11,9 @@
 #define __MCF_XGLOBALS_READONLY
 #include "xglobals.h"
 #include "../once.h"
+#include <ntstatus.h>
+#include <sysinfoapi.h>
+#include <libloaderapi.h>
 
 static inline
 void
@@ -118,7 +121,12 @@ __MCF_runtime_failure(const char* where)
     /* If we are in a DLL entry-point function or a TLS callback, it is not safe
      * to call `MessageBoxW()` from USER32.DLL, so request CSRSS.EXE to display
      * the message box for us.  */
-    __MCF_show_service_notification(&caption, &text, MB_OK | MB_ICONSTOP);
+    ULONG rhe_resp = 0;
+    ULONG_PTR rhe_params[4] = { (ULONG_PTR) &text, (ULONG_PTR) &caption, MB_OK | MB_ICONSTOP, 0 };
+    NtRaiseHardError(STATUS_SERVICE_NOTIFICATION, ARRAYSIZE(rhe_params),
+                     0b0011, /* parameters 0 and 1 are `UNICODE_STRING*` */
+                     rhe_params, 1 /* OptionOk */, &rhe_resp);
+    (void) rhe_resp;
 
     /* Terminate the current process.  */
     EXCEPTION_RECORD record = { .ExceptionCode = (ULONG) STATUS_FAIL_FAST_EXCEPTION,
