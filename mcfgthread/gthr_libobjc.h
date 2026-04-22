@@ -95,7 +95,7 @@ __MCF_ALT_SYM(__MCF_gthr_objc_mutex_lock, __gthread_objc_mutex_lock);
 #  define __MCF_gthr_objc_mutex_lock  __gthread_objc_mutex_lock
 #endif
 
-/* Try to grab a lock on a mutex.  */
+/* Try grabbing a lock on a mutex.  */
 __MCF_GTHR_LIBOBJC_IMPORT
 int
 __MCF_gthr_objc_mutex_trylock(objc_mutex_t __objc_mtx)
