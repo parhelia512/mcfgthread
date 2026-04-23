@@ -21,7 +21,6 @@ EXPORTS
   GetSystemInfo@4@
   GetSystemTimeAsFileTime@4@
   GetThreadPriority@4@
-  GetTickCount64@0@
   HeapAlloc@12@
   HeapFree@12@
   HeapReAlloc@16@
