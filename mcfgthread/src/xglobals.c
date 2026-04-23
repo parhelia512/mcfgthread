@@ -234,16 +234,6 @@ __MCF_seh_top(EXCEPTION_RECORD* rec, PVOID estab_frame, CONTEXT* ctx, PVOID disp
     __builtin_trap();
   }
 
-#if defined __MCF_M_X8632 && !defined __MCF_IN_DLL && defined _MSC_VER
-/* Register SEH handlers. In the DLL we build a handler table by hand which works
- * on all compilers. In the static library we use the `.safeseh` directive but it
- * is only supported by Microsoft LINK, or LLD in LINK mode.  */
-__asm__ (
-"\n.safeseh ___MCF_seh_top"
-"\n.safeseh _do_call_once_seh_unwind"
-);
-#endif
-
 __MCF_DLLEXPORT
 void
 __MCF_initialize_winnt_timeout_v3(__MCF_winnt_timeout* to, const int64_t* ms_opt)
@@ -864,5 +854,15 @@ __pragma(comment(linker, "/include:" __MCF_USYM "_tls_used"))
 __pragma(section(".CRT$XLB", read))
 #endif
 const PIMAGE_TLS_CALLBACK __MCF_crt_xl_b __MCF_CRT_XL(B) = do_tls_callback;
+
+#if defined __MCF_M_X8632 && defined _MSC_VER
+/* Register SEH handlers. In the DLL we build a handler table by hand which works
+ * on all compilers. In the static library we use the `.safeseh` directive but it
+ * is only supported by Microsoft LINK, or LLD in LINK mode.  */
+__asm__ (
+"\n.safeseh ___MCF_seh_top"
+"\n.safeseh _do_call_once_seh_unwind"
+);
+#endif
 
 #endif  /* __MCF_IN_DLL  */
