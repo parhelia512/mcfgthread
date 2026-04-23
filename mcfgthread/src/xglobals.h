@@ -135,7 +135,7 @@ __MCF_invoke_cxa_dtor(__MCF_cxa_dtor_any_ dtor, void* arg)
 #endif  /* !defined __MCF_M_X8632 */
 
 typedef struct __MCF_winnt_timeout __MCF_winnt_timeout;
-typedef struct __MCF_xglobals __MCF_xglobals;
+typedef struct __MCF_crt_xglobals __MCF_crt_xglobals;
 
 /* This structure contains timeout values that will be passed to NT syscalls.  */
 struct __MCF_winnt_timeout
@@ -270,9 +270,9 @@ extern typeof_TlsGetValue2* __MCF_XGLOBALS_READONLY __MCF_crt_TlsGetValue;
  * This is achieved by having them point to a named shared memory object, which
  * is created with exclusive access with a name that is generated from its PID.
  * Additional randomness is introduced to make the name unpredictable.  */
-struct __MCF_xglobals
+struct __MCF_crt_xglobals
   {
-    __MCF_xglobals* self_ptr;
+    __MCF_crt_xglobals* self_ptr;
     uint32_t self_size;
     uint32_t tls_index;
 
@@ -297,10 +297,10 @@ struct __MCF_xglobals
 
 /* This is a pointer to the process-specific named shared memory in the
  * current module.  */
-extern __MCF_xglobals* __MCF_XGLOBALS_READONLY restrict __MCF_g;
+extern __MCF_crt_xglobals* __MCF_XGLOBALS_READONLY restrict __MCF_g;
 
 /* Get a field from named shared memory with version checking.  */
-#define __MCF_OFFXG_(field)   offsetof(__MCF_xglobals, field)
+#define __MCF_OFFXG_(field)   offsetof(__MCF_crt_xglobals, field)
 #define __MCF_HAS_G(field)    (__MCF_g->self_size >= __MCF_OFFXG_(field) + sizeof(__MCF_g->field))
 #define __MCF_G(field)        (*(__MCF_ASSERT(__MCF_HAS_G(field)), &(__MCF_g->field)))
 #define __MCF_G_OPT(field)    (__MCF_HAS_G(opt_##field) ? &(__MCF_g->opt_##field) : nullptr)
