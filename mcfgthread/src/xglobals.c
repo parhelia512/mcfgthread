@@ -395,8 +395,7 @@ __MCF_gthread_initialize_globals(void)
     static WCHAR gnbuffer[] = L"Local\\__MCF_crt_xglobals_*?pid???_#?cookie????????";
     static UNICODE_STRING gname = __MCF_NT_STRING_INIT(gnbuffer);
     static OBJECT_ATTRIBUTES gattrs = { .Length = sizeof(gattrs), .ObjectName = &gname,
-                                        .Attributes = 0x00A0 /* OBJ_OPENIF | OBJ_EXCLUSIVE */ };
-
+                                        .Attributes = OBJ_OPENIF | OBJ_EXCLUSIVE };
     __MCF_set_directory_to_BaseNamedObject(&gattrs);
 
     const uint32_t pid = (uint32_t) __MCF_pid();
