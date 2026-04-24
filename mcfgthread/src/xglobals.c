@@ -325,9 +325,8 @@ __MCF_win32_ntstatus_p(NTSTATUS status, void* ptr)
     return ptr;
   }
 
-static
+static inline
 int
-__fastcall
 do_pop_dtor(__MCF_dtor_element* elem, _MCF_mutex* mtx, __MCF_dtor_queue* queue, void* dso)
   {
     _MCF_mutex_lock_slow(mtx, nullptr);
@@ -347,18 +346,16 @@ __MCF_run_static_dtors(_MCF_mutex* mtx, __MCF_dtor_queue* queue, void* dso)
       __MCF_invoke_cxa_dtor(elem.__dtor, elem.__this);
   }
 
-static
+static inline
 void
-__fastcall
 do_hex_encode(wchar_t* ptr, unsigned width, uint64_t value, const wchar_t* digits)
   {
     for(unsigned k = 0;  k != width;  ++k)
       ptr[k] = digits[(value >> (width - 1 - k) * 4) & 0x0FU];
   }
 
-static
+static inline
 uint64_t
-__fastcall
 do_make_cookie(uint32_t seed)
   {
     uintptr_t xid = __MCF_64_32(seed * 0x100000001ULL, seed) ^ __MCF_UINTPTR_MAX;
