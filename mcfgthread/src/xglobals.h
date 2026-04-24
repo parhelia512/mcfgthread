@@ -25,7 +25,7 @@
 
 /* Guarantee that `nullptr` is available for C.  */
 #if 0 __MCF_C23(+1) __MCF_CXX11(+1) == 0
-#  define nullptr   ((void*) __MCF_IPTR_0)
+#  define nullptr   ((void*) __MCF_INTPTR_0)
 #endif
 
 /* Define data that must be placed in `.rdata` despite `-fdata-sections`.  */

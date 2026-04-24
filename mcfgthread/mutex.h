@@ -125,7 +125,7 @@ _MCF_mutex_unlock(_MCF_mutex* __mtx)
     uintptr_t __old_bits, __new_bits;
     _MCF_atomic_load_pptr_rlx(&__old_bits, __mtx);
     __MCF_ASSERT((__old_bits & 1) != 0);  /* __locked != 0 */
-    if((__old_bits & (__MCF_UPTR_MAX - 0x1E1U)) == 0) {  /* (__sp_mask == 0) && (__nsleep == 0) */
+    if((__old_bits & (__MCF_UINTPTR_MAX - 0x1E1U)) == 0) {  /* (__sp_mask == 0) && (__nsleep == 0) */
       __new_bits = __old_bits - 1U;
       if(_MCF_atomic_cmpxchg_weak_pptr_rel(__mtx, &__old_bits, &__new_bits))
         return;

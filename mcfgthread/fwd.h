@@ -31,7 +31,7 @@
 #define __MCF_CXX(...)
 #define __MCF_noexcept
 #define __MCF_MAY_THROW
-#define __MCF_nullptr    __MCF_IPTR_0
+#define __MCF_nullptr    __MCF_INTPTR_0
 
 #ifdef __cplusplus
 #  undef __MCF_CXX
@@ -216,12 +216,12 @@ typedef unsigned __MCF_INT64_ uint64_t;
 typedef __MCF_INTPTR_ intptr_t;
 typedef unsigned __MCF_INTPTR_ uintptr_t;
 
-#define __MCF_PTR_BITS    __MCF_64_32(64, 32)
-#define __MCF_IPTR_MIN    __MCF_64_32((-0x7FFFFFFFFFFFFFFFLL-1), (-0x7FFFFFFF-1))
-#define __MCF_IPTR_0      __MCF_64_32(0LL, 0)
-#define __MCF_IPTR_MAX    __MCF_64_32(0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFF)
-#define __MCF_UPTR_0      __MCF_64_32(0ULL, 0U)
-#define __MCF_UPTR_MAX    __MCF_64_32(0xFFFFFFFFFFFFFFFFULL, 0xFFFFFFFFU)
+#define __MCF_PTR_BITS      __MCF_64_32(64, 32)
+#define __MCF_INTPTR_MIN    __MCF_64_32((-0x7FFFFFFFFFFFFFFFLL-1), (-0x7FFFFFFF-1))
+#define __MCF_INTPTR_0      __MCF_64_32(0LL, 0)
+#define __MCF_INTPTR_MAX    __MCF_64_32(0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFF)
+#define __MCF_UINTPTR_0     __MCF_64_32(0ULL, 0U)
+#define __MCF_UINTPTR_MAX   __MCF_64_32(0xFFFFFFFFFFFFFFFFULL, 0xFFFFFFFFU)
 
 /* I can't find a better name for this macro. It controls whether the complete
  * definitions of inline functions are compiled. If headers are included by user

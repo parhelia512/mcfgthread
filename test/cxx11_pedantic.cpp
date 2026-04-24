@@ -16,16 +16,16 @@ int main(void) { return 77;  }
 #endif
 
 __MCF_STATIC_ASSERT(__MCF_PTR_BITS == sizeof(void*) * 8);
-__MCF_STATIC_ASSERT(__MCF_IPTR_MIN == INTPTR_MIN);
-__MCF_STATIC_ASSERT(sizeof(__MCF_IPTR_MIN) == sizeof(intptr_t));
-__MCF_STATIC_ASSERT(__MCF_IPTR_0 == 0);
-__MCF_STATIC_ASSERT(sizeof(__MCF_IPTR_0) == sizeof(intptr_t));
-__MCF_STATIC_ASSERT(__MCF_IPTR_MAX == INTPTR_MAX);
-__MCF_STATIC_ASSERT(sizeof(__MCF_IPTR_MAX) == sizeof(intptr_t));
-__MCF_STATIC_ASSERT(__MCF_UPTR_0 == 0);
-__MCF_STATIC_ASSERT(sizeof(__MCF_UPTR_0) == sizeof(intptr_t));
-__MCF_STATIC_ASSERT(__MCF_UPTR_MAX == UINTPTR_MAX);
-__MCF_STATIC_ASSERT(sizeof(__MCF_UPTR_MAX) == sizeof(intptr_t));
+__MCF_STATIC_ASSERT(__MCF_INTPTR_MIN == INTPTR_MIN);
+__MCF_STATIC_ASSERT(sizeof(__MCF_INTPTR_MIN) == sizeof(intptr_t));
+__MCF_STATIC_ASSERT(__MCF_INTPTR_0 == 0);
+__MCF_STATIC_ASSERT(sizeof(__MCF_INTPTR_0) == sizeof(intptr_t));
+__MCF_STATIC_ASSERT(__MCF_INTPTR_MAX == INTPTR_MAX);
+__MCF_STATIC_ASSERT(sizeof(__MCF_INTPTR_MAX) == sizeof(intptr_t));
+__MCF_STATIC_ASSERT(__MCF_UINTPTR_0 == 0);
+__MCF_STATIC_ASSERT(sizeof(__MCF_UINTPTR_0) == sizeof(intptr_t));
+__MCF_STATIC_ASSERT(__MCF_UINTPTR_MAX == UINTPTR_MAX);
+__MCF_STATIC_ASSERT(sizeof(__MCF_UINTPTR_MAX) == sizeof(intptr_t));
 
 int
 main(void)
