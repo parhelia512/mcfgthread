@@ -307,7 +307,7 @@ extern __MCF_crt_xglobals* __MCF_XGLOBALS_READONLY restrict __MCF_g;
 /* An `imp_` field is a pointer. For a dynamic load symbol to exist, the field
  * must exist, and must contain a non-null value.  */
 #define __MCF_HAS_G_IMP(name)   (__MCF_HAS_G(imp_##name) && __MCF_g->imp_##name)
-#define __MCF_G_IMP(name)       (*(__MCF_ASSERT(__MCF_HAS_G_IMP(name)), __MCF_g->imp_##name))
+#define __MCF_G_IMP(name)       (*(__MCF_ASSERT(__MCF_HAS_G(imp_##name)), __MCF_g->imp_##name))
 #define __MCF_G_IMP_OPT(name)   (__MCF_HAS_G(imp_##name) ? __MCF_g->imp_##name : nullptr)
 
 /* Ensure we don't mess things up.  */
