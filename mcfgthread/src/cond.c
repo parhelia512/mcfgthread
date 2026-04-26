@@ -115,7 +115,7 @@ _MCF_cond_signal_some_slow(_MCF_cond* cnd, size_t limit)
       new.__reserved_bits = 0;
       new.__nsleep = (old.__nsleep - wake_num) & (__MCF_UINTPTR_MAX >> 9);
 
-      if(_MCF_atomic_cmpxchg_weak_pptr_rlx(cnd, &old, &new))
+      if(_MCF_atomic_cmpxchg_weak_pptr_rel(cnd, &old, &new))
         break;
     }
 
