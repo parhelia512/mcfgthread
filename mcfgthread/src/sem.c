@@ -56,7 +56,7 @@ _MCF_sem_wait(_MCF_sem* sem, const int64_t* timeout_opt)
 
         new.__value = old.__value + 1;
 
-        if(_MCF_atomic_cmpxchg_weak_pptr_acq(sem, &old, &new))
+        if(_MCF_atomic_cmpxchg_weak_pptr_rlx(sem, &old, &new))
           return -1;
       }
 
