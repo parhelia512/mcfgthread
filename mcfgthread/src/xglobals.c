@@ -378,11 +378,16 @@ __MCF_gthread_initialize_globals(void)
     HeapSetInformation(__MCF_crt_heap, HeapEnableTerminationOnCorruption, nullptr, 0);
 #endif
 
-    /* Load system DLLs. It's not necessary to call `FreeLibrary()`, as these
-     * can't be unloaded.  */
+    /* Get handles to system DLLs, by calling `LoadLibraryEx()` with
+     * `LOAD_LIBRARY_SEARCH_SYSTEM32` to prevent DLL hijacking. These DLLs are
+     * pre-loaded and pinned on modern systems, so there's no need to call
+     * `FreeLibrary()`.  */
     __MCF_crt_ntdll = LoadLibraryExW(L"NTDLL.DLL", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+    __MCF_CHECK(__MCF_crt_ntdll);
     __MCF_crt_kernel32 = LoadLibraryExW(L"KERNEL32.DLL", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+    __MCF_CHECK(__MCF_crt_kernel32);
     __MCF_crt_kernelbase = LoadLibraryExW(L"KERNELBASE.DLL", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+    __MCF_CHECK(__MCF_crt_kernelbase);
 
     /* This function is available since Windows 11 24H2. It has the same
      * signature as `TlsGetValue()`, so the latter can be used as a backup.  */
