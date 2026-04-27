@@ -81,7 +81,7 @@ do_lock_common(_MCF_shared_mutex* smtx, bool shared, const int64_t* timeout_opt)
        * keyed event before us, so we set the timeout to zero. If we time out
        * once more, the third thread will have incremented the number of
        * sleeping threads and we can try decrementing it again.  */
-      err = __MCF_keyed_event_wait(smtx, &(__MCF_winnt_timeout){ 0 });
+      err = __MCF_keyed_event_wait(smtx, __MCF_crt_timeout_0);
     }
 
     /* We have got notified.  */

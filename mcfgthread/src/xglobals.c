@@ -294,10 +294,9 @@ __MCF_batch_release_common(const void* key, size_t count)
      * they are waiting. We don't release the keyed event in this case, as it
      * blocks the calling thread infinitely if there is no thread to wake up.
      * See <https://github.com/lhmouse/mcfgthread/issues/21>.  */
-    static const __MCF_winnt_timeout safety_timeout = { .li.QuadPart = -10000000 };
     size_t remaining = count;
     while((remaining != 0) && !RtlDllShutdownInProgress())
-      if(__MCF_keyed_event_signal(key, &safety_timeout) == 0)
+      if(__MCF_keyed_event_signal(key, __MCF_crt_timeout_1s) == 0)
         remaining --;
   }
 
@@ -521,6 +520,8 @@ __MCF_gthread_on_thread_exit(void)
 /* These are constants that have to be initialized at load time. The
  * initializers prevent them from being placed into the`.bss` section.  */
 __MCF_BR(GUID) const __MCF_crt_gthread_guid = { __MCF_GUID(9FB2D15C,C5F2,4AE7,868D,2769591B8E92) };
+__MCF_BR(__MCF_winnt_timeout) const __MCF_crt_timeout_0 = {{ .li.QuadPart = 0 }};
+__MCF_BR(__MCF_winnt_timeout) const __MCF_crt_timeout_1s = {{ .li.QuadPart = -10000000 }};
 SYSTEM_INFO __MCF_crt_sysinfo = { .dwPageSize = 1 };
 double __MCF_crt_pf_recip = 1;
 HANDLE __MCF_crt_heap = __MCF_BAD_PTR;

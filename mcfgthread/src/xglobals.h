@@ -254,6 +254,8 @@ __MCF_gthread_on_thread_exit(void);
 
 /* These are constants that have to be initialized at load time.  */
 extern __MCF_ALIGNED(8) __MCF_BR(GUID) const __MCF_crt_gthread_guid;
+extern __MCF_BR(__MCF_winnt_timeout) const __MCF_crt_timeout_0;
+extern __MCF_BR(__MCF_winnt_timeout) const __MCF_crt_timeout_1s;
 extern SYSTEM_INFO __MCF_XGLOBALS_READONLY __MCF_crt_sysinfo;
 extern double __MCF_XGLOBALS_READONLY __MCF_crt_pf_recip;
 extern HANDLE __MCF_XGLOBALS_READONLY __MCF_crt_heap;

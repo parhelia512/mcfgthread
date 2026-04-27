@@ -65,7 +65,7 @@ do_unlock_and_wait(_MCF_cond* cnd, _MCF_cond_unlock_callback* unlock_opt, intptr
        * keyed event before us, so we set the timeout to zero. If we time out
        * once more, the third thread will have incremented the number of
        * sleeping threads and we can try decrementing it again.  */
-      err = __MCF_keyed_event_wait(cnd, &(__MCF_winnt_timeout){ 0 });
+      err = __MCF_keyed_event_wait(cnd, __MCF_crt_timeout_0);
     }
 
     /* We have got notified.  */
