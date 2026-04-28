@@ -67,11 +67,13 @@ _MCF_thread_new_aligned(_MCF_thread_procedure* proc, size_t align, const void* d
   {
     if(!proc)
       return __MCF_win32_error_p(ERROR_INVALID_PARAMETER, nullptr);
-    else if(align & (align - 1))  /* power of two, or zero?  */
+
+    if(align & (align - 1))  /* power of 2, or 0 */
       return __MCF_win32_error_p(ERROR_INVALID_PARAMETER, nullptr);
     else if(align > __MCF_THREAD_MAX_DATA_ALIGNMENT)
       return __MCF_win32_error_p(ERROR_NOT_SUPPORTED, nullptr);
-    else if(size > 0x8000000U - __MCF_THREAD_MAX_DATA_ALIGNMENT)
+
+    if(size > 0x8000000U - __MCF_THREAD_MAX_DATA_ALIGNMENT)
       return __MCF_win32_error_p(ERROR_ARITHMETIC_OVERFLOW, nullptr);
 
     /* Calculate the number of bytes to allocate for the thread control structure
