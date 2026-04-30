@@ -75,7 +75,7 @@ _MCF_mutex_lock_slow(_MCF_mutex* mtx, const int64_t* timeout_opt)
         /* The mutex is locked and we are not willing to wait, so fail.  */
         return -1;
       }
-      else if((old.__sp_mask != 15U) && (old.__sp_nfail < __MCF_MUTEX_SP_NFAIL_THRESHOLD)) {
+      else if((old.__sp_mask != 0x0FU) && (old.__sp_nfail < __MCF_MUTEX_SP_NFAIL_THRESHOLD)) {
         /* The mutex is locked, but a spare spinning slot is available, so
          * allocate a slot and try spinning.  */
         sp_budget = __MCF_MUTEX_SP_NFAIL_THRESHOLD - old.__sp_nfail;
@@ -122,7 +122,7 @@ _MCF_mutex_lock_slow(_MCF_mutex* mtx, const int64_t* timeout_opt)
         for(;;)
           if(old.__locked == 0) {
             new.__locked = 1;
-            new.__sp_mask = old.__sp_mask & (15U - my_mask) & 0x0FU;
+            new.__sp_mask = old.__sp_mask & (0x0FU - my_mask) & 0x0FU;
             new.__sp_nfail = do_adjust_sp_nfail(old.__sp_nfail, -1) & 0x0FU;
             new.__nsleep = old.__nsleep;
 
@@ -150,7 +150,7 @@ _MCF_mutex_lock_slow(_MCF_mutex* mtx, const int64_t* timeout_opt)
       for(;;)
         if(old.__locked == 0) {
           new.__locked = 1;
-          new.__sp_mask = (old.__sp_mask & (15U - my_mask)) & 0x0FU;
+          new.__sp_mask = (old.__sp_mask & (0x0FU - my_mask)) & 0x0FU;
           new.__sp_nfail = do_adjust_sp_nfail(old.__sp_nfail, -1) & 0x0FU;
           new.__nsleep = old.__nsleep;
 
@@ -159,7 +159,7 @@ _MCF_mutex_lock_slow(_MCF_mutex* mtx, const int64_t* timeout_opt)
         }
         else {
           new.__locked = 1;
-          new.__sp_mask = (old.__sp_mask & (15U - my_mask)) & 0x0FU;
+          new.__sp_mask = (old.__sp_mask & (0x0FU - my_mask)) & 0x0FU;
           new.__sp_nfail = do_adjust_sp_nfail(old.__sp_nfail, +1) & 0x0FU;
           new.__nsleep = (old.__nsleep + 1U) & (__MCF_UINTPTR_MAX >> 9);
 
