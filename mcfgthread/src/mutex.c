@@ -132,13 +132,12 @@ _MCF_mutex_lock_slow(_MCF_mutex* mtx, const int64_t* timeout_opt)
               return 0;
           }
           else {
-            new.__locked = 1;
-            new.__sp_mask = (old.__sp_mask | my_mask) & 0x0FU;
-            new.__sp_nfail = old.__sp_nfail;
-            new.__nsleep = old.__nsleep;
-
-            if(_MCF_atomic_cmpxchg_weak_pptr_rlx(mtx, &old, &new))
-              break;
+            /* The mutex is locked, so continue spinning. We used to restore
+             * `my_mask` in `__sp_mask`, but this caused serious performance
+             * regression. Now the current thread just continues spinning
+             * until another thread reallocates `my_mask`, or it runs out of
+             * `sp_rem`.  */
+            break;
           }
       }
 
