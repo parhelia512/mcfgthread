@@ -116,13 +116,15 @@ _MCF_mutex_lock_slow(_MCF_mutex* mtx, const int64_t* timeout_opt)
         if(_MCF_atomic_xchg_b_rlx(do_spin_byte_ptr(mtx, my_mask), false) == false)
           continue;
 
-        /* If this mutex has not been locked, lock it and decrement the
-         * failure counter. Otherwise, do nothing.  */
         _MCF_atomic_load_pptr_rlx(&old, mtx);
         for(;;)
           if(old.__locked == 0) {
+            /* The mutex is not locked, so lock and decrement the spinning
+             * failure counter. The spinning mask of the current thread has
+             * been cleared by the waker, but it may be allocated by another
+             * thread before we get our turn.  */
             new.__locked = 1;
-            new.__sp_mask = old.__sp_mask & (0x0FU - my_mask) & 0x0FU;
+            new.__sp_mask = old.__sp_mask;
             new.__sp_nfail = do_adjust_sp_nfail(old.__sp_nfail, -1) & 0x0FU;
             new.__nsleep = old.__nsleep;
 
