@@ -106,6 +106,8 @@ _MCF_mutex_lock_slow(_MCF_mutex* mtx, const int64_t* timeout_opt)
     if(sp_budget > 0) {
       uint32_t my_mask = (uint32_t) (old.__sp_mask ^ new.__sp_mask);
       __MCF_ASSERT(my_mask != 0);
+      uint32_t restore_mask = my_mask;
+
       uint32_t sp_rem = sp_budget * (__MCF_MUTEX_MAX_SPIN_COUNT / __MCF_MUTEX_SP_NFAIL_THRESHOLD);
       while(sp_rem > 0) {
         sp_rem --;
@@ -132,13 +134,17 @@ _MCF_mutex_lock_slow(_MCF_mutex* mtx, const int64_t* timeout_opt)
               return 0;
           }
           else {
-            /* The mutex is locked, so continue spinning. We used to restore
+            /* The mutex is stolen, so continue spinning. We used to restore
              * `my_mask` in `__sp_mask`, but this caused serious performance
              * regression. Now the current thread just continues spinning
              * until another thread reallocates `my_mask`, or it runs out of
              * `sp_rem`.  */
             break;
           }
+
+        /* The mask has been consumed by the waker and may be allocated by
+         * another thread, so don't restore it any more.  */
+        restore_mask = 0;
       }
 
       /* We have wasted some time, so return the spinning mask and allocate
@@ -151,7 +157,7 @@ _MCF_mutex_lock_slow(_MCF_mutex* mtx, const int64_t* timeout_opt)
       for(;;)
         if(old.__locked == 0) {
           new.__locked = 1;
-          new.__sp_mask = (old.__sp_mask & (0x0FU - my_mask)) & 0x0FU;
+          new.__sp_mask = (old.__sp_mask & (0x0FU - restore_mask)) & 0x0FU;
           new.__sp_nfail = do_adjust_sp_nfail(old.__sp_nfail, -1) & 0x0FU;
           new.__nsleep = old.__nsleep;
 
@@ -160,7 +166,7 @@ _MCF_mutex_lock_slow(_MCF_mutex* mtx, const int64_t* timeout_opt)
         }
         else {
           new.__locked = 1;
-          new.__sp_mask = (old.__sp_mask & (0x0FU - my_mask)) & 0x0FU;
+          new.__sp_mask = (old.__sp_mask & (0x0FU - restore_mask)) & 0x0FU;
           new.__sp_nfail = do_adjust_sp_nfail(old.__sp_nfail, +1) & 0x0FU;
           new.__nsleep = (old.__nsleep + 1U) & (__MCF_UINTPTR_MAX >> 9);
 
