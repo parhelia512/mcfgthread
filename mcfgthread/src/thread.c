@@ -71,20 +71,21 @@ _MCF_thread_new_aligned(_MCF_thread_procedure* proc, size_t align, const void* d
       return __MCF_win32_error_p(ERROR_NOT_ENOUGH_MEMORY, nullptr);
 
     if(size != 0) {
-      thrd->__data_opt = thrd + 1;
+      uintptr_t data_addr = (uintptr_t) thrd + sizeof(__MCF_thread_base);
+      thrd->__data_opt = (void*) data_addr;
       if(size_need != size_request) {
-        /* Adjust `__data_opt` for over-aligned types. If we have over-allocated
-         * memory, give back some. Errors are ignored.  */
-        uintptr_t data_addr = (uintptr_t) thrd->__data_opt;
+        /* Round `__data_opt` for over-aligned types.  */
         data_addr --;
         data_addr |= real_align - 1;
         data_addr ++;
         __MCF_ASSERT(data_addr % real_align == 0);
-
         thrd->__data_opt = (void*) data_addr;
+
+        /* If we have over-allocated memory, give back some. Errors are ignored.  */
         size_request = data_addr + size - (uintptr_t) thrd;
         __MCF_ASSERT(size_need <= size_request);
-        __MCF_mresize_0(thrd, size_request);
+        if(size_request != size_need)
+          __MCF_mresize_0(thrd, size_request);
       }
 
       /* Copy user-defined data. If this doesn't happen, they are implicit zeroes.  */
