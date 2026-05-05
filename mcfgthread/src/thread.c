@@ -9,54 +9,29 @@
 #define __MCF_THREAD_IMPORT  __MCF_DLLEXPORT
 #define __MCF_THREAD_INLINE  __MCF_DLLEXPORT
 #include "../thread.h"
-#include "../event.h"
 #include "xglobals.h"
 
-typedef struct thread_init thread_init;
-
-enum thread_init_status
+static
+void
+do_thread_startup(_MCF_thread* thrd)
   {
-    thread_init_null       = 0,
-    thread_init_waiting    = 1,
-    thread_init_running    = 2,
-    thread_init_cancelled  = 3,
-  };
-
-struct thread_init
-  {
-    __MCF_BR(_MCF_event) status;
-    ULONG win32_error;
-    _MCF_thread* thrd;
-  };
+    __MCF_USING_SEH_HANDLER(__MCF_seh_top);
+    __MCF_CHECK(TlsSetValue(__MCF_G(tls_index), thrd));
+    thrd->__tid = __MCF_tid();
+#if defined __MCF_M_X86_ASM
+    /* Set x87 precision to 64-bit mantissa (GNU `long double` format).  */
+    __asm__ volatile ("fninit");
+#endif
+    (* thrd->__proc) (thrd);
+  }
 
 static __MCF_REALIGN_SP
 ULONG
 __stdcall
 do_win32_thread_routine(LPVOID param)
   {
-    __MCF_USING_SEH_HANDLER(__MCF_seh_top);
-    thread_init* init = param;
-    _MCF_event_await_change(init->status, thread_init_null, nullptr);
-    _MCF_thread* thrd = init->thrd;
-
-    /* Attach the thread.  */
-    if(!TlsSetValue(__MCF_G(tls_index), thrd)) {
-      init->win32_error = GetLastError();
-      _MCF_event_set_slow(init->status, thread_init_cancelled);
-      return 0;
-    }
-
-    /* Let the creator go, which invalidates `*init`.  */
-    __MCF_ASSERT(thrd->__tid == __MCF_tid());
-    _MCF_event_set_slow(init->status, thread_init_running);
-    init = __MCF_BAD_PTR;
-
-#if defined __MCF_M_X86_ASM
-    /* Set x87 precision to 64-bit mantissa (GNU `long double` format).  */
-    __asm__ volatile ("fninit");
-#endif
-
-    (* thrd->__proc) (thrd);
+    do_thread_startup(param);
+    __MCF_gthread_on_thread_exit();
     return 0;
   }
 
@@ -91,55 +66,44 @@ _MCF_thread_new_aligned(_MCF_thread_procedure* proc, size_t align, const void* d
     }
 
     /* Allocate and initialize the thread control structure.  */
-    thread_init init;
-    _MCF_event_init(init.status, thread_init_null);
-    init.thrd = __MCF_malloc_0(size_request);
-    if(!init.thrd)
+    _MCF_thread* thrd = __MCF_malloc_0(size_request);
+    if(!thrd)
       return __MCF_win32_error_p(ERROR_NOT_ENOUGH_MEMORY, nullptr);
 
     if(size != 0) {
-      init.thrd->__data_opt = init.thrd + 1;
+      thrd->__data_opt = thrd + 1;
       if(size_need != size_request) {
         /* Adjust `__data_opt` for over-aligned types. If we have over-allocated
          * memory, give back some. Errors are ignored.  */
-        uintptr_t data_addr = (uintptr_t) init.thrd->__data_opt;
+        uintptr_t data_addr = (uintptr_t) thrd->__data_opt;
         data_addr --;
         data_addr |= real_align - 1;
         data_addr ++;
         __MCF_ASSERT(data_addr % real_align == 0);
 
-        init.thrd->__data_opt = (void*) data_addr;
-        size_request = data_addr + size - (uintptr_t) init.thrd;
+        thrd->__data_opt = (void*) data_addr;
+        size_request = data_addr + size - (uintptr_t) thrd;
         __MCF_ASSERT(size_need <= size_request);
-        __MCF_mresize_0(init.thrd, size_request);
+        __MCF_mresize_0(thrd, size_request);
       }
 
       /* Copy user-defined data. If this doesn't happen, they are implicit zeroes.  */
       if(data_opt)
-        __MCF_mcopy(init.thrd->__data_opt, data_opt, size);
+        __MCF_mcopy(thrd->__data_opt, data_opt, size);
     }
 
     /* Create a thread and wait for its initialization to finish.  */
-    _MCF_atomic_store_32_rlx(init.thrd->__nref, 2);
-    init.thrd->__proc = proc;
-    init.thrd->__handle = CreateThread(nullptr, 0, do_win32_thread_routine, &init, 0,
-                                       (void*) &(init.thrd->__tid));
-    if(init.thrd->__handle == NULL) {
-      __MCF_mfree_nonnull(init.thrd);
+    _MCF_atomic_store_32_rlx(thrd->__nref, 2);
+    thrd->__proc = proc;
+    thrd->__handle = CreateThread(nullptr, 0, do_win32_thread_routine, thrd, 0,
+                                  (void*) &(thrd->__tid));
+    if(!thrd->__handle) {
+      __MCF_mfree_nonnull(thrd);
       return nullptr;
     }
 
-    _MCF_event_set_slow(init.status, thread_init_waiting);
-    int result = _MCF_event_await_change_slow(init.status, thread_init_waiting, nullptr);
-    if(result == thread_init_cancelled) {
-      __MCF_close_handle(init.thrd->__handle);
-      __MCF_mfree_nonnull(init.thrd);
-      return __MCF_win32_error_p(init.win32_error, nullptr);
-    }
-
     /* Return the initialized thread.  */
-    __MCF_ASSERT(result == thread_init_running);
-    return init.thrd;
+    return thrd;
   }
 
 __MCF_DLLEXPORT
@@ -195,6 +159,7 @@ __MCF_DLLEXPORT
 void
 _MCF_thread_exit(void)
   {
+    __MCF_gthread_on_thread_exit();
     ExitThread(0);
     __MCF_UNREACHABLE;
   }
