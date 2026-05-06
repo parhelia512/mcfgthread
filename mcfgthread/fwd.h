@@ -33,7 +33,7 @@
 #define __MCF_MAY_THROW
 #define __MCF_nullptr    __MCF_INTPTR_0
 
-#ifdef __cplusplus
+#if defined __cplusplus
 #  undef __MCF_CXX
 #  define __MCF_CXX(...)   __VA_ARGS__
 #  undef __MCF_C
@@ -250,7 +250,7 @@ template<typename _Tp> struct __MCF_make_br { typedef _Tp __type[1]; };
 
 /* Some compilers warn about casts between pointers, so launder the pointer via
  * an in-between integral type.  */
-#ifdef __cplusplus
+#if defined __cplusplus
 #  define __MCF_CAST_PTR(T, ...)   (reinterpret_cast<T*>(reinterpret_cast<__MCF_INTPTR_>(__VA_ARGS__)))
 #else
 #  define __MCF_CAST_PTR(T, ...)   (__MCF_EX (T*)(__MCF_INTPTR_) (__VA_ARGS__))
