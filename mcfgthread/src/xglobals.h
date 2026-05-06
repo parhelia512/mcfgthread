@@ -596,8 +596,8 @@ HANDLE
 __MCF_duplicate_handle(HANDLE SourceHandle)
   {
     HANDLE handle;
-    NTSTATUS status = NtDuplicateObject(GetCurrentProcess(), SourceHandle,
-                                        GetCurrentProcess(), &handle, 0, 0,
+    NTSTATUS status = NtDuplicateObject(NtCurrentProcess(), SourceHandle,
+                                        NtCurrentProcess(), &handle, 0, 0,
                                         DUPLICATE_SAME_ACCESS);
     if(status < 0)
       return __MCF_win32_ntstatus_p(status, NULL);
@@ -619,7 +619,7 @@ __MCF_map_view_of_section(HANDLE Section, bool Inheritable)
     void* address = nullptr;
     SIZE_T size = 0;
     UINT inherit = Inheritable ? 1U : 2U;  /* ViewShare : ViewUnmap */
-    NTSTATUS status = NtMapViewOfSection(Section, GetCurrentProcess(), &address, 0, 0,
+    NTSTATUS status = NtMapViewOfSection(Section, NtCurrentProcess(), &address, 0, 0,
                                          nullptr, &size, inherit, 0, PAGE_READWRITE);
     if(status < 0)
       return __MCF_win32_ntstatus_p(status, nullptr);
@@ -630,7 +630,7 @@ __MCF_ALWAYS_INLINE
 void
 __MCF_unmap_view_of_section(void* Address)
   {
-    NTSTATUS status = NtUnmapViewOfSection(GetCurrentProcess(), Address);
+    NTSTATUS status = NtUnmapViewOfSection(NtCurrentProcess(), Address);
     __MCF_ASSERT(status >= 0);
   }
 

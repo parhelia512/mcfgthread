@@ -44,12 +44,10 @@ struct _OBJECT_ATTRIBUTES
 #define OBJ_IGNORE_IMPERSONATED_DEVICEMAP  0x00000800
 #define OBJ_DONT_REPARSE                   0x00001000
 
-/* Hard-code these.  */
-#undef GetCurrentProcess
-#define GetCurrentProcess()  ((HANDLE) -1)
-
-#undef GetCurrentThread
-#define GetCurrentThread()   ((HANDLE) -2)
+/* pseudo handles; wdm.h  */
+#define NtCurrentProcess()  ((HANDLE) -1)
+#define NtCurrentThread()   ((HANDLE) -2)
+#define NtCurrentSession()  ((HANDLE) -3)
 
 /* Undefine macros that redirect to standard C functions, so the ones from
  * system DLLs will be called.  */

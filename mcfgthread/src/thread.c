@@ -117,7 +117,7 @@ __MCF_thread_attach_foreign(_MCF_thread* thrd)
 
     /* Initialize thread identity fields.  */
     thrd->__tid = __MCF_tid();
-    thrd->__handle = __MCF_duplicate_handle(GetCurrentThread());
+    thrd->__handle = __MCF_duplicate_handle(NtCurrentThread());
     __MCF_CHECK(thrd->__handle);
 
     /* Initialize the reference count to detached state.  */
@@ -175,7 +175,7 @@ _MCF_thread_wait(const _MCF_thread* thrd_opt, const int64_t* timeout_opt)
     /* Translate the thread handle for the sake of consistency. It is probably
      * not useful to pass a null thread pointer, as the operation will time out
      * or deadlock anyway.  */
-    HANDLE handle = thrd_opt ? thrd_opt->__handle : GetCurrentThread();
+    HANDLE handle = thrd_opt ? thrd_opt->__handle : NtCurrentThread();
     return __MCF_wait_for_single_object(handle, &nt_timeout);
   }
 
@@ -183,7 +183,7 @@ __MCF_DLLEXPORT
 _MCF_thread_priority
 _MCF_thread_get_priority(const _MCF_thread* thrd_opt)
   {
-    HANDLE handle = thrd_opt ? thrd_opt->__handle : GetCurrentThread();
+    HANDLE handle = thrd_opt ? thrd_opt->__handle : NtCurrentThread();
     return (_MCF_thread_priority) GetThreadPriority(handle);
   }
 
@@ -191,7 +191,7 @@ __MCF_DLLEXPORT
 int
 _MCF_thread_set_priority(_MCF_thread* thrd_opt, _MCF_thread_priority priority)
   {
-    HANDLE handle = thrd_opt ? thrd_opt->__handle : GetCurrentThread();
+    HANDLE handle = thrd_opt ? thrd_opt->__handle : NtCurrentThread();
     BOOL succ = SetThreadPriority(handle, priority);
     return !succ ? -1 : 0;
   }
