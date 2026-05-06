@@ -73,4 +73,5 @@ main(void)
 
     assert(resource == 1);
     assert(num_init == 1);
+    assert(num_ready + num_timed_out == NTHREADS - 1);
   }
