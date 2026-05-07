@@ -132,7 +132,8 @@ cxx = meson.get_compiler('cpp')
 dlltool = find_program('dlltool', required: true)
 
 add_project_arguments(
-    '-D_WIN32_WINNT=0x0601', '-D__USE_MINGW_ANSI_STDIO', '-U_FORTIFY_SOURCE',
+    '-D_WIN32_WINNT=0x0601', '-D__USE_MINGW_ANSI_STDIO', '-D_CRT_SECURE_NO_WARNINGS',
+    '-U_FORTIFY_SOURCE',
     '-fno-stack-protector', '-fno-omit-frame-pointer', '-momit-leaf-frame-pointer',
     '-fmerge-all-constants', '-fstrict-aliasing', '-ffast-math', '-fdata-sections',
     '-funwind-tables',
@@ -160,6 +161,12 @@ add_project_arguments(
     '-Wno-redundant-move', '-Wzero-as-null-pointer-constant',
     cxx.get_supported_arguments(
       '-Wno-unqualified-std-cast-call', '-Wno-dynamic-exception-spec'),
+    language: 'cpp')
+
+add_project_link_arguments(
+    '-static-libgcc', '-static-libstdc++',
+    cxx.get_supported_arguments(
+      '-Wno-unused-command-line-argument'),
     language: 'cpp')
 
 if get_option('enable-debug-checks')
@@ -364,10 +371,6 @@ foreach src : test_src
 
   if src.startswith('test/shared_timed_mutex_')
     test_cpp_args = [ '-std=c++14' ]
-  endif
-
-  if src.endswith('.cpp')
-    test_link_args = [ '-static-libgcc', '-static-libstdc++' ]
   endif
 
   test_exe = executable(src.underscorify(),
