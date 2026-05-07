@@ -369,7 +369,7 @@ __MCF_gthread_initialize_globals(void)
 
     LARGE_INTEGER pfreq;
     __MCF_CHECK(QueryPerformanceFrequency(&pfreq));
-    __MCF_crt_pf_recip = 1000 / (double) pfreq.QuadPart;
+    __MCF_crt_perf_freq_reciprocal = 1000 / (double) pfreq.QuadPart;
 
     __MCF_crt_heap = GetProcessHeap();
     __MCF_CHECK(__MCF_crt_heap);
@@ -523,7 +523,7 @@ __MCF_BR(GUID) const __MCF_crt_gthread_guid = { __MCF_GUID(9FB2D15C,C5F2,4AE7,86
 __MCF_BR(__MCF_winnt_timeout) const __MCF_crt_timeout_0 = {{ .li.QuadPart = 0 }};
 __MCF_BR(__MCF_winnt_timeout) const __MCF_crt_timeout_1s = {{ .li.QuadPart = -10000000 }};
 SYSTEM_INFO __MCF_crt_sysinfo = { .dwPageSize = 1 };
-double __MCF_crt_pf_recip = 1;
+double __MCF_crt_perf_freq_reciprocal = -1;
 HANDLE __MCF_crt_heap = __MCF_BAD_PTR;
 HMODULE __MCF_crt_ntdll = __MCF_BAD_PTR;
 HMODULE __MCF_crt_kernel32 = __MCF_BAD_PTR;

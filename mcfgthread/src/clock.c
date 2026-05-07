@@ -150,5 +150,5 @@ _MCF_perf_counter(void)
     /* This will not fail since Windows XP.  */
     LARGE_INTEGER li;
     QueryPerformanceCounter(&li);
-    return (double) li.QuadPart * __MCF_crt_pf_recip;
+    return (double) li.QuadPart * __MCF_crt_perf_freq_reciprocal;
   }
