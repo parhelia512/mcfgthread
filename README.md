@@ -48,25 +48,49 @@ Intel i7-1165G7 mobile processor (4 cores, 8 threads):
 
 ## How to Build
 
-Compiling natively can be done in MSYS2. We take the UCRT64 shell as an example.
-Others are similar. Clang shells are also supported.
+mcfgthread can be compiled natively in MSYS2. We take the UCRT64 shell as an
+example; others are similar. MSYS and CLANG64 shells are also supported.
 
 ```sh
-pacman -S --noconfirm mingw-w64-ucrt-x86_64-{{headers,crt,tools}-git,gcc,binutils,meson}
-meson setup build_debug
-cd build_debug
-ninja test
+pacman -S --noconfirm  \
+  mingw-w64-ucrt-x86_64-{{headers,crt,tools}-git,gcc,binutils,meson}
+```
+```sh
+meson setup build_dir
+cd build_dir
+meson compile
+meson test
 ```
 
-Cross-compiling from Debian, Ubuntu or Linux Mint is supported. In order to run
-tests, Wine is required.
+In [cross](cross), there are prefabricated Meson cross files for cross compilation.
+In order to run tests, Wine is required. Here are commands for cross-compiling on
+Debian, Ubuntu or Linux Mint; if you are using another Linux distribution, you will
+need to use some other package manager to install these dependencies.
 
 ```sh
-sudo apt-get install -y --no-install-recommends mingw-w64-{x86-64-dev,tools}  \
-        {gcc,g++,binutils}-mingw-w64-x86-64 meson wine wine-binfmt
-meson setup --cross-file cross/gcc.x86_64-w64-mingw32 build_debug
-cd build_debug
-ninja test
+sudo apt-get install -y --no-install-recommends  \
+  mingw-w64-{x86-64-dev,tools} {gcc,g++,binutils}-mingw-w64-x86-64 meson  \
+  wine wine-binfmt
+```
+```sh
+meson setup --cross-file cross/gcc.x86_64-w64-mingw32 build_dir
+cd build_dir
+meson compile
+meson test  # requires Wine
+```
+
+It's not possible to build mcfgthread with MSVC. However, it's possible to compile
+mcfgthread with Clang to produce libraries that are compatible with MSVC, which
+can then be used in Visual Studio projects.
+
+LLVM can be installed with their Windows installers from
+<https://github.com/llvm/llvm-project/releases/>.
+
+```sh
+meson setup --native-file cross/llvm.windows.default build_dir
+cd build_dir
+meson compile
+meson test
 ```
 
 > [!TIP]
