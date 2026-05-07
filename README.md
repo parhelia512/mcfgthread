@@ -48,6 +48,8 @@ Intel i7-1165G7 mobile processor (4 cores, 8 threads):
 
 ## How to Build
 
+#### MSYS2
+
 mcfgthread can be compiled natively in MSYS2. We take the UCRT64 shell as an
 example; others are similar. MSYS and CLANG64 shells are also supported.
 
@@ -61,6 +63,19 @@ cd build_dir
 meson compile
 meson test
 ```
+
+> [!TIP]
+> In order for `__cxa_atexit()` (and the non-standard `__cxa_at_quick_exit()`) to
+> conform to the Itanium C++ ABI, it is required 1) for a process to call
+> `__cxa_finalize(NULL)` when exiting, and 2) for a DLL to call
+> `__cxa_finalize(&__dso_handle)` when it is unloaded dynamically. This requires
+> [hacking the CRT](https://github.com/lhmouse/MINGW-packages/blob/0274a6e7e0da258cf5e32efe6e4427454741fa32/mingw-w64-crt-git/9003-crt-Implement-standard-conforming-termination-suppor.patch). If you don't
+> have the modified CRT, you may still get standard compliance by 1) calling
+> `__MCF_exit()` instead of `exit()` from your program, and 2) calling
+> `__cxa_finalize(&__dso_handle)` followed by `fflush(NULL)` upon receipt of
+> `DLL_PROCESS_DETACH` in your `DllMain()`.
+
+#### Linux
 
 In [cross](cross), there are prefabricated Meson cross files for cross compilation.
 In order to run tests, Wine is required. Here are commands for cross-compiling on
@@ -79,6 +94,8 @@ meson compile
 meson test  # requires Wine
 ```
 
+#### Clang for MSVC
+
 It's not possible to build mcfgthread with MSVC. However, it's possible to compile
 mcfgthread with Clang to produce libraries that are compatible with MSVC, which
 can then be used in Visual Studio projects.
@@ -92,17 +109,6 @@ cd build_dir
 meson compile
 meson test
 ```
-
-> [!TIP]
-> In order for `__cxa_atexit()` (and the non-standard `__cxa_at_quick_exit()`) to
-> conform to the Itanium C++ ABI, it is required 1) for a process to call
-> `__cxa_finalize(NULL)` when exiting, and 2) for a DLL to call
-> `__cxa_finalize(&__dso_handle)` when it is unloaded dynamically. This requires
-> [hacking the CRT](https://github.com/lhmouse/MINGW-packages/blob/0274a6e7e0da258cf5e32efe6e4427454741fa32/mingw-w64-crt-git/9003-crt-Implement-standard-conforming-termination-suppor.patch). If you don't
-> have the modified CRT, you may still get standard compliance by 1) calling
-> `__MCF_exit()` instead of `exit()` from your program, and 2) calling
-> `__cxa_finalize(&__dso_handle)` followed by `fflush(NULL)` upon receipt of
-> `DLL_PROCESS_DETACH` in your `DllMain()`.
 
 ## Implementation Details
 
