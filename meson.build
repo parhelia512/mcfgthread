@@ -140,10 +140,11 @@ add_project_arguments(
     '-Werror=write-strings', '-Werror=return-type', '-Werror=double-promotion',
     '-Wmissing-declarations', '-Wswitch-enum', '-Wmissing-field-initializers',
     '-Wshadow', '-Wunused-function', '-Wunused-label', '-Wunused-local-typedefs',
-    '-Wunused-but-set-variable', '-Wunused-but-set-parameter', '-Wunused-const-variable',
+    '-Wunused-but-set-variable', '-Wunused-but-set-parameter',
+    '-Wunused-const-variable',
     cc.get_supported_arguments(
-      '-masm=intel', '-msse2', '-mfpmath=sse+387', '-mno-outline-atomics', '-fno-ident',
-      '-fms-runtime-lib=dll', '-mcmodel=small', '-fno-auto-import',
+      '-masm=intel', '-msse2', '-mfpmath=sse+387', '-mno-outline-atomics',
+      '-fno-ident', '-fms-runtime-lib=dll', '-mcmodel=small', '-fno-auto-import',
       '-Wno-unused-command-line-argument', '-Wsuggest-attribute=noreturn',
       '-Wno-dll-attribute-on-redeclaration', '-Wno-option-ignored'),
     language: [ 'c', 'cpp' ])
